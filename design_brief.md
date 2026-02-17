@@ -3,41 +3,34 @@
 ## 1. App Analysis
 
 ### What This App Does
-This is a habit tracking application (Gewohnheitstracker) that helps users build and maintain positive habits. Users define habits they want to cultivate (like exercise, meditation, reading), set frequency goals (daily, weekly, etc.), and track their daily progress. The app provides visibility into habit completion rates and helps maintain motivation through streak tracking.
+Der Gewohnheitstracker hilft Nutzern dabei, tägliche Gewohnheiten zu definieren, zu tracken und langfristig aufzubauen. Nutzer können Gewohnheiten in verschiedenen Kategorien (Gesundheit, Ernährung, Produktivität etc.) anlegen, mit Zielhäufigkeiten versehen und täglich abhaken. Das Tagesprotokoll bietet eine Übersicht über den Tageserfolg.
 
 ### Who Uses This
-German-speaking individuals focused on personal development and self-improvement. They want a simple, non-overwhelming way to track daily habits without complex goal-setting features. They value seeing their progress at a glance and appreciate gentle motivation rather than gamification.
+Menschen, die ihre Gewohnheiten verbessern wollen - von Fitness-Enthusiasten über Berufstätige, die produktiver werden wollen, bis hin zu Menschen, die einfach mehr Struktur in ihren Alltag bringen möchten. Sie sind motiviert, aber brauchen ein einfaches Tool, das sie nicht überfordert.
 
 ### The ONE Thing Users Care About Most
-**"Wie gut mache ich heute?"** (How well am I doing today?)
-
-Users open this app primarily to:
-1. See today's habits and which ones they've completed
-2. Quickly mark habits as done
-3. Get a sense of their overall consistency
-
-The hero element must answer: "What's my completion rate for today?" with immediate visual feedback.
+**Habe ich heute meine Gewohnheiten erledigt?** - Die sofortige Übersicht über den aktuellen Tag: Wie viele Gewohnheiten sind erledigt, wie viele stehen noch aus, und wie ist meine Streak (Serie an erfolgreichen Tagen)?
 
 ### Primary Actions (IMPORTANT!)
-1. **Gewohnheit erledigen** (Mark habit as complete) → Primary Action - Inline toggles for each habit
-2. **Täglichen Eintrag hinzufügen** (Add daily entry) → Secondary - For habits with quantity tracking
-3. **Neue Gewohnheit erstellen** (Create new habit) → In Gewohnheiten section
+1. **Gewohnheit als erledigt markieren** → Primary Action Button (Schnelles Abhaken)
+2. **Neuen Eintrag für heute hinzufügen** → Schnellzugriff
+3. **Neue Gewohnheit anlegen** → Sekundäre Aktion
 
 ---
 
 ## 2. What Makes This Design Distinctive
 
 ### Visual Identity
-The design uses a warm, encouraging aesthetic that feels like a supportive companion rather than a demanding task manager. The soft sage green accent color evokes growth and nature, reinforcing the idea of "cultivating" habits like a garden. The cream-tinted background creates a calm, journal-like atmosphere that makes daily check-ins feel like a personal ritual rather than a chore.
+Eine warme, einladende Farbpalette mit sanftem Grün als Akzentfarbe schafft eine motivierende, aber nicht aufdringliche Atmosphäre. Das Design fühlt sich an wie ein persönliches Journal - warm, einladend und inspirierend. Der cremefarbene Hintergrund mit subtilen grünen Akzenten vermittelt Wachstum und positive Veränderung ohne dabei steril oder kalt zu wirken.
 
 ### Layout Strategy
-- **Hero is today's progress** - A large circular progress ring showing today's completion percentage dominates the top of the screen, making the answer to "How am I doing?" instantly visible
-- **Asymmetric layout on desktop** - Left 2/3 shows today's habits in a spacious list, right 1/3 shows weekly trend and quick stats
-- **Size variation creates hierarchy** - The progress ring is dramatically larger (180px on mobile, 240px on desktop) than other elements, secondary stats are compact inline badges
-- **Breathing room** - Generous padding around the hero section creates focus, tighter spacing in the habit list creates efficient scanning
+- **Hero-Element:** Ein großer Fortschrittsring zeigt prominent den Tagesfortschritt (z.B. "5 von 7 erledigt") - dieser dominiert den oberen Bereich und gibt sofortige Motivation
+- **Asymmetrisches Layout:** Der Hero nimmt 60% der Aufmerksamkeit ein, die Gewohnheitsliste darunter ist kompakt und funktional
+- **Visuelle Variation:** Der Progress-Ring als Hero vs. kompakte Checkboxen für einzelne Gewohnheiten schafft klare Hierarchie
+- **Sekundäre Elemente:** Kategorie-Badges und Streak-Anzeigen sind dezent, aber erkennbar
 
 ### Unique Element
-**The habit completion cards use a satisfying "done" state transformation.** When a habit is marked complete, the card background shifts to a soft sage tint, a subtle checkmark appears, and the text styling changes to indicate completion. This micro-interaction makes checking off habits feel rewarding without being childish or over-animated.
+Der **Progress-Ring** im Hero-Bereich ist das Herzstück: Ein dicker (10px) Fortschrittskreis mit abgerundeten Enden, der sich mit einer sanften Animation füllt. Im Zentrum steht die Zahl der erledigten Gewohnheiten in großer, fetter Schrift. Der Ring nutzt einen Farbverlauf von Mint zu Smaragd, der Fortschritt visualisiert und zum Weitermachen motiviert.
 
 ---
 
@@ -45,8 +38,8 @@ The design uses a warm, encouraging aesthetic that feels like a supportive compa
 
 ### Font
 - **Family:** Plus Jakarta Sans
-- **URL:** `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap`
-- **Why this font:** Plus Jakarta Sans has a friendly, modern character with slightly rounded terminals that feel approachable and warm. It's highly legible at both large hero sizes and small label text, and its weight range (400-700) provides excellent hierarchy options.
+- **URL:** `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap`
+- **Why this font:** Plus Jakarta Sans ist modern und freundlich, aber nicht kindlich. Die leicht gerundeten Formen vermitteln Wärme, während die klare Struktur professionell wirkt - perfekt für ein persönliches Productivity-Tool.
 
 ### Color Palette
 All colors as complete hsl() functions:
@@ -54,125 +47,122 @@ All colors as complete hsl() functions:
 | Purpose | Color | CSS Variable |
 |---------|-------|--------------|
 | Page background | `hsl(45 30% 97%)` | `--background` |
-| Main text | `hsl(200 15% 15%)` | `--foreground` |
+| Main text | `hsl(150 10% 15%)` | `--foreground` |
 | Card background | `hsl(0 0% 100%)` | `--card` |
-| Card text | `hsl(200 15% 15%)` | `--card-foreground` |
+| Card text | `hsl(150 10% 15%)` | `--card-foreground` |
 | Borders | `hsl(45 15% 88%)` | `--border` |
-| Primary action (sage green) | `hsl(145 35% 42%)` | `--primary` |
+| Primary action | `hsl(152 55% 40%)` | `--primary` |
 | Text on primary | `hsl(0 0% 100%)` | `--primary-foreground` |
-| Accent highlight | `hsl(145 40% 92%)` | `--accent` |
+| Accent highlight | `hsl(152 45% 92%)` | `--accent` |
 | Muted background | `hsl(45 20% 94%)` | `--muted` |
-| Muted text | `hsl(200 10% 45%)` | `--muted-foreground` |
-| Success/positive | `hsl(145 45% 45%)` | (component use) |
-| Error/negative | `hsl(0 65% 50%)` | `--destructive` |
+| Muted text | `hsl(150 5% 45%)` | `--muted-foreground` |
+| Success/positive | `hsl(152 60% 45%)` | (component use) |
+| Error/negative | `hsl(0 65% 55%)` | `--destructive` |
 
 ### Why These Colors
-The warm cream background (`hsl(45 30% 97%)`) creates an inviting, paper-like quality that makes the app feel personal and journal-like. The sage green primary (`hsl(145 35% 42%)`) connects to themes of growth, health, and nature - perfect for a habit-building app. The color is distinctive (not generic teal or blue) while remaining calm and professional.
+Die Farbpalette basiert auf **sanftem Grün** (Wachstum, Natur, Erfolg) kombiniert mit **warmem Creme** (Einladend, persönlich, nicht steril). Das Grün ist bewusst nicht zu grell gewählt - es soll motivieren, nicht unter Druck setzen. Der cremefarbene Hintergrund gibt dem Design Wärme und unterscheidet es von kalten Productivity-Apps.
 
 ### Background Treatment
-The background is a warm off-white with subtle cream undertones. No gradient or texture - the warmth comes purely from the hue shift. This creates a clean, modern feel while avoiding the clinical coldness of pure white.
+Der Hintergrund ist ein warmes Off-White mit leichtem Gelbstich (hsl(45 30% 97%)), das die Augen schont und dem Design Charakter verleiht. Cards heben sich durch reines Weiß und subtile Schatten ab.
 
 ---
 
 ## 4. Mobile Layout (Phone)
 
+Design mobile as a COMPLETELY SEPARATE experience, not squeezed desktop.
+
 ### Layout Approach
-The mobile layout is a focused, single-column experience optimized for quick daily check-ins. The hero progress ring dominates the first viewport, immediately answering "How am I doing today?" The habit list below is designed for fast, one-handed interaction with large tap targets.
+Der Hero (Progress-Ring) dominiert den ersten Viewport und schafft sofortige emotionale Verbindung. Darunter folgt die interaktive Gewohnheitsliste. Die Hierarchie ist klar: Zuerst sehen, dann handeln.
 
 ### What Users See (Top to Bottom)
 
 **Header:**
-- Left: App title "Gewohnheiten" in semi-bold (600 weight)
-- Right: Settings icon (gear) for future settings access
+- Titel "Gewohnheitstracker" links (600 weight, 20px)
+- Rechts: Icon-Button für "Neue Gewohnheit" (+)
+- Höhe: 56px, sticky am oberen Rand
 
 **Hero Section (The FIRST thing users see):**
-- **What:** Large circular progress ring showing today's completion percentage
-- **Size:** Takes approximately 50% of first viewport height (ring diameter: 180px)
-- **Center content:** Large percentage number (48px bold), label "Heute erledigt" below (14px muted)
-- **Ring style:** 10px stroke, sage green for completed portion, light gray for remaining
-- **Below ring:** Two compact stat badges side by side - "X von Y Gewohnheiten" and current streak "X Tage Streak"
-- **Why hero:** This immediately answers the user's primary question and provides motivation
+- **Progress-Ring:** 180px Durchmesser, zentriert
+- Im Zentrum: Große Zahl (48px, 800 weight) der erledigten Gewohnheiten
+- Darunter klein: "von X heute" (14px, muted)
+- Unterhalb des Rings: Streak-Anzeige als Badge ("7 Tage in Folge")
+- Hintergrund: Subtle gradient von accent zu transparent
+- **Warum Hero:** Dies beantwortet sofort die wichtigste Frage: "Wie weit bin ich heute?"
+- Nimmt etwa 35% des Viewports ein
 
-**Section 2: Heute's Gewohnheiten (Today's Habits)**
-- Section header: "Heute" with date (e.g., "Dienstag, 17. Feb") in muted text
-- List of habit cards, each showing:
-  - Habit name (medium weight)
-  - Category badge (small, colored pill)
-  - Completion toggle (large checkbox on right, 44px tap target)
-  - If measurable: small input for quantity
-- Completed habits have sage-tinted background and muted text
-- Cards have subtle shadow and 12px border radius
+**Section 2: Heute zu erledigen**
+- Überschrift "Heute" mit Datum (formatiert als "Di, 17. Feb")
+- Liste aller Gewohnheiten für heute
+- Jede Gewohnheit als Card mit:
+  - Links: Checkbox (rund, 24px) - primäre Interaktion
+  - Mitte: Name der Gewohnheit (16px, 600 weight)
+  - Kategorie als farbiger Badge (klein, rounded-full)
+  - Wenn messbar: Eingabefeld für Menge/Wert
+- Erledigte Gewohnheiten: durchgestrichen, muted, Checkbox grün gefüllt
 
-**Section 3: Diese Woche (Weekly Overview)**
-- Compact 7-day grid showing completion dots for each day
-- Each day: column with day abbreviation (Mo, Di, Mi...) and filled/empty circle
-- Tapping a day could show that day's details (optional drill-down)
+**Section 3: Gewohnheiten verwalten**
+- Überschrift "Meine Gewohnheiten" mit Count-Badge
+- Liste aller definierten Gewohnheiten (kompakter als oben)
+- Jede Gewohnheit zeigt: Name, Kategorie, Häufigkeit
+- Swipe-Geste: Links = Bearbeiten, Rechts = Löschen
+- Tap: Details anzeigen
 
 **Bottom Navigation / Action:**
-- Floating Action Button (FAB) in bottom-right corner
-- Sage green, "+" icon
-- Opens bottom sheet to add new daily entry or habit
+- Floating Action Button (FAB) unten rechts
+- Icon: Plus, 56px Durchmesser
+- Primärfarbe, sanfter Schatten
+- Aktion: "Neuen Eintrag für heute hinzufügen"
 
 ### Mobile-Specific Adaptations
-- Habit cards are full-width with generous padding (16px)
-- Checkbox toggle is on the right edge for easy thumb access
-- Categories section hidden on mobile (accessible via FAB menu or settings)
-- Weekly chart simplified to dot grid (no labels beyond day abbreviations)
+- Gewohnheiten-Cards sind vollbreit (keine Margins außer padding)
+- Touch-Targets mindestens 44px
+- Checkbox ist großzügig tippbar (24px visuell, 44px Hitbox)
+- Swipe-Aktionen für Edit/Delete statt sichtbarer Icons
 
 ### Touch Targets
-- Habit completion checkboxes: minimum 44x44px
-- FAB: 56px diameter
-- Card tap areas: entire card is tappable for detail view
+- Alle interaktiven Elemente mindestens 44x44px Hitbox
+- Checkboxen: 24px visuell, 44px tippbar
+- FAB: 56px
+- List Items: Gesamte Zeile ist tippbar für Details
 
 ### Interactive Elements
-- Tapping a habit card opens a detail sheet showing notes, history, and edit/delete options
-- Long-press on habit could reveal quick actions (edit, delete)
+- Tap auf Gewohnheit in "Heute": Toggle erledigt/nicht erledigt
+- Tap auf Gewohnheit in "Meine Gewohnheiten": Detail-Dialog
+- Long Press: Kontextmenü (Bearbeiten, Löschen)
 
 ---
 
 ## 5. Desktop Layout
 
 ### Overall Structure
-Three-column layout with asymmetric proportions:
-- **Left column (15%):** Navigation sidebar with category filters
-- **Center column (55%):** Main content - hero and today's habits
-- **Right column (30%):** Weekly stats, trends, and recent activity
-
-Eye flow: Hero progress ring (center-top) → Today's habit list (center) → Weekly trend (right) → Categories (left for filtering)
+2-Spalten-Layout mit asymmetrischer Aufteilung:
+- **Linke Spalte (65%):** Hero + Heute-Liste
+- **Rechte Spalte (35%):** Gewohnheiten-Management + Statistiken
+- Max-Width: 1200px, zentriert
+- Padding: 32px
 
 ### Section Layout
 
-**Left Sidebar (fixed, 240px width):**
-- App logo/title at top
-- "Alle Gewohnheiten" link
-- Category filters (Gesundheit, Ernährung, Produktivität, etc.)
-- Active filter highlighted with sage accent
-- "Neue Gewohnheit" button at bottom
+**Linke Spalte:**
+1. Hero-Bereich: Progress-Ring (240px) links, daneben Statistiken (Streak, Woche, Monat)
+2. "Heute" Karte: Vollbreite, Gewohnheiten als Liste mit inline Checkbox-Toggle
+3. Optionale Chart-Sektion: Wöchentlicher Verlauf als Balkendiagramm
 
-**Center Main Area:**
-- Hero section: Progress ring (240px diameter) with stats below
-- Today's habits in a comfortable list with more horizontal space
-- Each habit card shows: icon, name, category, streak, completion toggle
-- Add entry inline button visible on hover
-
-**Right Sidebar (320px width):**
-- "Diese Woche" section with bar chart showing daily completions
-- "Statistiken" section with key metrics:
-  - Längster Streak (longest streak)
-  - Durchschnittliche Erfüllung (average completion rate)
-  - Aktivste Kategorie (most active category)
-- "Letzte Aktivität" showing recent habit completions
+**Rechte Spalte:**
+1. "Meine Gewohnheiten" Karte mit Liste aller Gewohnheiten
+2. Edit/Delete Buttons sichtbar (nicht nur per Hover)
+3. Button "Neue Gewohnheit" am oberen Rand der Karte
 
 ### What Appears on Hover
-- Habit cards: subtle shadow elevation, edit/delete icons appear on right
-- Category pills: show "filter by this" tooltip
-- Progress ring: show exact numbers (e.g., "4 von 6 Gewohnheiten")
+- Gewohnheits-Cards: Leichter Schatten-Anstieg, Edit/Delete Icons werden prominenter
+- Checkboxen: Scale-Animation (1.1x)
+- Progress-Ring: Pulsiert sanft
 
 ### Clickable/Interactive Areas
-- Habit cards → open detail dialog with full history and edit form
-- Category pills → filter habits by category
-- Weekly chart bars → show that day's habit breakdown
-- "Alle Gewohnheiten" → navigate to habit management view
+- Checkbox togglet Erledigt-Status direkt
+- Gewohnheits-Name öffnet Detail-Dialog
+- Edit-Icon öffnet Bearbeiten-Dialog
+- Delete-Icon öffnet Bestätigungs-Dialog
 
 ---
 
@@ -181,198 +171,193 @@ Eye flow: Hero progress ring (center-top) → Today's habit list (center) → We
 ### Hero KPI
 The MOST important metric that users see first.
 
-- **Title:** Heute erledigt
-- **Data source:** Tägliche Einträge (filtered to today, erledigt=true) / Gewohnheiten (total active)
-- **Calculation:** Count of today's completed entries / Count of daily habits × 100
-- **Display:** Large circular progress ring with percentage in center
-- **Context shown:** "X von Y Gewohnheiten" below the ring, current streak badge
-- **Why this is the hero:** Immediately answers "How am I doing today?" - the user's primary question when opening the app
+- **Title:** Tagesfortschritt
+- **Data source:** Tägliche Einträge (taegliche_eintraege) gefiltert auf heute
+- **Calculation:** Count von erledigten Einträgen (erledigt === true) / Count aller aktiven Gewohnheiten
+- **Display:** Großer Progress-Ring (180px mobile, 240px desktop) mit Prozent/Absolute im Zentrum
+- **Context shown:** "X von Y erledigt" + Streak (aufeinanderfolgende Tage mit 100%)
+- **Why this is the hero:** Beantwortet sofort die wichtigste Frage des Nutzers und motiviert zum Weitermachen
 
 ### Secondary KPIs
-
-**Aktueller Streak**
+**Aktuelle Streak**
 - Source: Tägliche Einträge
-- Calculation: Count consecutive days with 100% completion (or >80% as threshold)
-- Format: number + "Tage"
-- Display: Small badge next to hero
+- Calculation: Anzahl aufeinanderfolgender Tage (inkl. heute) mit mindestens einer erledigten Gewohnheit
+- Format: "X Tage" mit Flammen-Icon
+- Display: Badge unter dem Hero
 
-**Wochenfortschritt**
-- Source: Tägliche Einträge (last 7 days)
-- Calculation: Average daily completion rate
-- Format: percentage
-- Display: In right sidebar on desktop, below hero on mobile
+**Woche**
+- Source: Tägliche Einträge der letzten 7 Tage
+- Calculation: Durchschnitt der täglichen Completion-Rate
+- Format: Prozent
+- Display: Kleine Karte (Desktop) / Badge (Mobile)
 
-**Aktive Gewohnheiten**
+**Gesamt Gewohnheiten**
 - Source: Gewohnheiten
-- Calculation: Count of all habits
-- Format: number
-- Display: Compact stat in sidebar
+- Calculation: Count
+- Format: Zahl
+- Display: Im Header der Gewohnheiten-Liste
 
-### Chart (Weekly Overview)
-- **Type:** Bar chart - shows daily progress as filled bars, making comparison easy
-- **Title:** Diese Woche
-- **What question it answers:** "Am I being consistent?" - shows pattern over time
-- **Data source:** Tägliche Einträge (last 7 days, grouped by date)
-- **X-axis:** Day of week (Mo, Di, Mi, Do, Fr, Sa, So)
-- **Y-axis:** Completion percentage (0-100%)
-- **Mobile simplification:** Replace bars with simple dot grid (filled = good day, empty = missed)
+### Chart
+- **Type:** Bar Chart - Balken eignen sich perfekt um den täglichen Fortschritt zu visualisieren, da jeder Tag ein diskreter Wert ist
+- **Title:** Letzte 7 Tage
+- **What question it answers:** Wie konsistent war ich diese Woche?
+- **Data source:** Tägliche Einträge der letzten 7 Tage
+- **X-axis:** Wochentag (Mo, Di, Mi...)
+- **Y-axis:** Anzahl erledigter Gewohnheiten
+- **Mobile simplification:** Nur auf Desktop anzeigen; auf Mobile als einfache "X/7 Tage erfolgreich" Badge
 
 ### Lists/Tables
 
-**Heute's Gewohnheiten (Primary List)**
-- Purpose: Show today's habits for quick completion tracking
-- Source: Gewohnheiten (all) + Tägliche Einträge (today's entries)
-- Fields shown: Habit name, category badge, completion status, optional quantity
-- Mobile style: Full-width cards with prominent toggle
-- Desktop style: Comfortable cards with hover actions
-- Sort: Incomplete first, then by category
-- Limit: All habits (typically 5-10)
+**Heute zu erledigen**
+- Purpose: Schnelles Abhaken der heutigen Gewohnheiten
+- Source: Gewohnheiten (alle) + Tägliche Einträge (heute)
+- Fields shown: Gewohnheitsname, Kategorie-Badge, Checkbox, optional Menge/Wert-Input
+- Mobile style: Cards mit großen Touch-Targets
+- Desktop style: Kompakte Listenzeilen mit inline Checkbox
+- Sort: Nicht erledigt zuerst, dann erledigt
+- Limit: Alle (typischerweise 5-10)
 
-**Alle Gewohnheiten (Management View)**
-- Purpose: Full CRUD management of habits
+**Meine Gewohnheiten**
+- Purpose: Verwalten aller definierten Gewohnheiten
 - Source: Gewohnheiten
-- Fields shown: Name, description, category, frequency, start date, goal
-- Mobile style: Expandable cards
-- Desktop style: Table with inline actions
-- Sort: By category, then name
-- Limit: All (paginate if >20)
+- Fields shown: Name, Kategorie, Häufigkeit, Startdatum
+- Mobile style: Kompakte Cards mit Swipe-Aktionen
+- Desktop style: Tabelle mit Action-Buttons
+- Sort: Alphabetisch nach Name
+- Limit: Alle
 
 ### Primary Action Button (REQUIRED!)
 
-- **Label:** "Eintrag hinzufügen" (mobile FAB shows just "+")
+- **Label:** "Eintrag hinzufügen"
 - **Action:** add_record
-- **Target app:** Tägliche Einträge
-- **What data:** Form with: Gewohnheit (select from Gewohnheiten), Datum (defaults to today), Erledigt (checkbox), Menge (optional number), Notizen (optional text)
-- **Mobile position:** bottom_fixed (FAB in bottom-right)
-- **Desktop position:** inline in habit card + header button
-- **Why this action:** Users need to quickly log habit completions, especially for measurable habits where they enter a quantity
+- **Target app:** Tägliche Einträge (taegliche_eintraege)
+- **What data:**
+  - gewohnheit (Select aus Gewohnheiten-Liste)
+  - datum (Default: heute)
+  - erledigt (Checkbox, default: true)
+  - menge (optional, wenn messbare Gewohnheit)
+  - notizen (optional textarea)
+- **Mobile position:** FAB unten rechts (bottom_fixed)
+- **Desktop position:** Button in der "Heute" Card Header
+- **Why this action:** Das schnelle Hinzufügen eines Eintrags ist die häufigste Aktion - Nutzer wollen ihre Gewohnheit mit einem Klick als erledigt markieren
 
 ### CRUD Operations Per App (REQUIRED!)
 
 **Gewohnheiten CRUD Operations**
 
 - **Create (Erstellen):**
-  - **Trigger:** "Neue Gewohnheit" button in sidebar (desktop) or FAB menu (mobile)
+  - **Trigger:** "Neue Gewohnheit" Button in Header (Mobile) oder rechte Spalte Header (Desktop)
   - **Form fields:**
-    - gewohnheit_name (text input, required)
+    - gewohnheit_name (text, required)
     - beschreibung (textarea, optional)
     - kategorie (select: Gesundheit & Fitness, Ernährung, Produktivität, Persönliche Entwicklung, Soziales, Finanzen, Sonstiges)
     - ziel_haeufigkeit (select: Täglich, Mehrmals pro Woche, Wöchentlich, Monatlich)
-    - startdatum (date picker, defaults to today)
-    - zielwert (text input, optional - e.g., "30 Minuten" or "8 Gläser")
-    - messbar (checkbox - "Mit Mengenangabe tracken")
+    - startdatum (date, default: heute)
+    - zielwert (text, optional - z.B. "8 Gläser Wasser")
+    - messbar (checkbox - wenn ja, erscheint Menge/Wert-Feld bei Einträgen)
   - **Form style:** Dialog/Modal
-  - **Required fields:** gewohnheit_name
-  - **Default values:** startdatum = today, kategorie = "sonstiges"
+  - **Required fields:** gewohnheit_name, kategorie, ziel_haeufigkeit
+  - **Default values:** startdatum = heute, messbar = false
 
 - **Read (Anzeigen):**
-  - **List view:** Cards showing name, category badge, frequency badge
-  - **Detail view:** Click card → Dialog showing all fields + completion history
-  - **Fields shown in list:** gewohnheit_name, kategorie, ziel_haeufigkeit
-  - **Fields shown in detail:** All fields + calculated stats (streak, completion rate)
-  - **Sort:** By kategorie, then alphabetically
-  - **Filter/Search:** Filter by kategorie, search by name
+  - **List view:** Cards mit Name, Kategorie-Badge, Häufigkeit
+  - **Detail view:** Dialog mit allen Feldern + Statistik (wie oft erledigt, Streak)
+  - **Fields shown in list:** Name, Kategorie, Häufigkeit
+  - **Fields shown in detail:** Alle Felder + berechnete Stats
+  - **Sort:** Alphabetisch nach Name
+  - **Filter/Search:** Filter nach Kategorie möglich
 
 - **Update (Bearbeiten):**
-  - **Trigger:** Edit icon (pencil) in card hover state or detail dialog
-  - **Edit style:** Same dialog as Create but pre-filled
-  - **Editable fields:** All fields
+  - **Trigger:** Bearbeiten-Icon (Stift) bei jeder Gewohnheit, oder Detail-Dialog > Bearbeiten
+  - **Edit style:** Gleicher Dialog wie Create, vorausgefüllt
+  - **Editable fields:** Alle Felder
 
 - **Delete (Löschen):**
-  - **Trigger:** Delete icon (trash) in detail dialog or swipe left on mobile
-  - **Confirmation:** AlertDialog with warning
+  - **Trigger:** Löschen-Icon (Papierkorb), oder Swipe-Geste auf Mobile
+  - **Confirmation:** Immer erforderlich!
   - **Confirmation text:** "Möchtest du die Gewohnheit '{name}' wirklich löschen? Alle zugehörigen Einträge bleiben erhalten."
 
 **Tägliche Einträge CRUD Operations**
 
 - **Create (Erstellen):**
-  - **Trigger:** FAB button "+" or inline "Erledigt" toggle on habit card
+  - **Trigger:** FAB (Mobile) oder "Eintrag hinzufügen" Button (Desktop), oder Checkbox-Toggle in Heute-Liste
   - **Form fields:**
-    - gewohnheit (select from Gewohnheiten)
-    - datum (date picker, defaults to today)
-    - erledigt (checkbox, defaults to true)
-    - menge (number input, only shown if habit.messbar=true)
+    - gewohnheit (select aus Gewohnheiten-Liste, required)
+    - datum (date, default: heute)
+    - erledigt (checkbox, default: true)
+    - menge (number, optional - nur wenn Gewohnheit messbar)
     - notizen (textarea, optional)
-  - **Form style:** Dialog for full form, inline toggle for quick completion
+  - **Form style:** Dialog/Modal für manuelles Hinzufügen; Direktes Toggle für Quick-Add
   - **Required fields:** gewohnheit, datum
-  - **Default values:** datum = today, erledigt = true
+  - **Default values:** datum = heute, erledigt = true
 
 - **Read (Anzeigen):**
-  - **List view:** Integrated into habit cards (today's view) or calendar view (history)
-  - **Detail view:** Click entry → Dialog with all fields
-  - **Fields shown in list:** Habit name (via lookup), completion status, date
-  - **Fields shown in detail:** All fields including menge and notizen
-  - **Sort:** By datum (newest first)
-  - **Filter/Search:** By date range, by gewohnheit
+  - **List view:** In "Heute" Sektion: Checkbox + Gewohnheitsname + optionale Menge
+  - **Detail view:** Dialog mit allen Feldern
+  - **Fields shown in list:** Gewohnheitsname (resolved), erledigt-Status, Menge
+  - **Fields shown in detail:** Alle Felder inkl. Notizen
+  - **Sort:** Nach Datum (neueste zuerst), dann nach Gewohnheit
+  - **Filter/Search:** Gefiltert auf aktuelles Datum in Heute-Ansicht
 
 - **Update (Bearbeiten):**
-  - **Trigger:** Click on entry in list or edit icon in detail view
-  - **Edit style:** Same dialog as Create, pre-filled
-  - **Editable fields:** All except gewohnheit (changing habit would be confusing)
+  - **Trigger:** Tap auf Eintrag in Heute-Liste, oder Bearbeiten-Icon
+  - **Edit style:** Gleicher Dialog wie Create, vorausgefüllt
+  - **Editable fields:** erledigt, menge, notizen (Gewohnheit und Datum nicht änderbar)
 
 - **Delete (Löschen):**
-  - **Trigger:** Delete icon in detail dialog or swipe left on mobile
-  - **Confirmation:** AlertDialog
-  - **Confirmation text:** "Eintrag vom {datum} für '{gewohnheit_name}' löschen?"
+  - **Trigger:** Swipe-Geste oder Löschen-Icon im Detail-Dialog
+  - **Confirmation:** Immer erforderlich
+  - **Confirmation text:** "Möchtest du diesen Eintrag wirklich löschen?"
 
 **Tagesprotokoll CRUD Operations**
 
 - **Create (Erstellen):**
-  - **Trigger:** "Notiz hinzufügen" button in daily view or FAB menu
+  - **Trigger:** "Tagesnotiz hinzufügen" Link unter der Heute-Liste
   - **Form fields:**
-    - protokoll_datum (date picker, defaults to today)
-    - tagesnotizen (textarea)
-    - erledigte_gewohnheiten (multi-select from Gewohnheiten - optional summary)
-  - **Form style:** Dialog/Modal
+    - protokoll_datum (date, required, default: heute)
+    - erledigte_gewohnheiten (select aus Gewohnheiten, optional - zur Übersicht)
+    - tagesnotizen (textarea, optional)
+  - **Form style:** Dialog/Modal oder Inline-Textarea
   - **Required fields:** protokoll_datum
-  - **Default values:** protokoll_datum = today
+  - **Default values:** protokoll_datum = heute
 
 - **Read (Anzeigen):**
-  - **List view:** Shown below today's habits as "Tagesnotiz" card if exists
-  - **Detail view:** Click to expand/edit
-  - **Fields shown in list:** Date, first 100 chars of notes
-  - **Fields shown in detail:** All fields
-  - **Sort:** By protokoll_datum
-  - **Filter/Search:** By date
+  - **List view:** Am Ende der Heute-Sektion als kleiner Text-Block
+  - **Detail view:** Expandierbare Ansicht oder Dialog
+  - **Fields shown in list:** Datum, Vorschau der Notizen (gekürzt)
+  - **Fields shown in detail:** Alle Felder
+  - **Sort:** Nach Datum (neueste zuerst)
+  - **Filter/Search:** Nach Datum filterbar
 
 - **Update (Bearbeiten):**
-  - **Trigger:** Click on note card or edit icon
-  - **Edit style:** Same dialog, pre-filled
-  - **Editable fields:** All fields
+  - **Trigger:** Tap auf Tagesnotiz oder Bearbeiten-Icon
+  - **Edit style:** Gleicher Dialog wie Create, vorausgefüllt
+  - **Editable fields:** tagesnotizen, erledigte_gewohnheiten
 
 - **Delete (Löschen):**
-  - **Trigger:** Delete icon in expanded view
-  - **Confirmation:** AlertDialog
-  - **Confirmation text:** "Tagesnotiz vom {datum} löschen?"
+  - **Trigger:** Löschen-Icon
+  - **Confirmation:** Erforderlich
+  - **Confirmation text:** "Möchtest du die Tagesnotiz vom {datum} wirklich löschen?"
 
 ---
 
 ## 7. Visual Details
 
 ### Border Radius
-- **Cards:** 12px (rounded, friendly feel)
-- **Buttons:** 8px (slightly less rounded)
-- **Badges/Pills:** 9999px (full pill shape)
-- **Inputs:** 8px
+Rounded (8px) - Sanft gerundet für ein freundliches, einladendes Gefühl. Nicht zu pill-artig, nicht zu scharf.
 
 ### Shadows
-- **Cards at rest:** `0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)` (subtle)
-- **Cards on hover:** `0 4px 12px rgba(0,0,0,0.08)` (elevated)
-- **Dialogs:** `0 10px 40px rgba(0,0,0,0.12)` (prominent)
-- **FAB:** `0 4px 12px rgba(0,0,0,0.15)` (floating)
+Subtle - Sanfte Schatten (0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)) für Cards. Hover-State mit leicht erhöhtem Schatten.
 
 ### Spacing
-- **Page padding:** 16px mobile, 24px desktop
-- **Card padding:** 16px mobile, 20px desktop
-- **Section gaps:** 24px mobile, 32px desktop
-- **Hero section:** Extra top/bottom padding (32px mobile, 48px desktop)
+Normal - 16px als Basis-Einheit. Cards haben 16px Padding, Abstand zwischen Elementen 12-16px.
 
 ### Animations
-- **Page load:** Subtle fade-in (200ms) with slight upward slide (8px)
-- **Hover effects:** 150ms ease-out for shadows and background changes
-- **Tap feedback:** Slight scale down (0.98) on touch, spring back
-- **Completion toggle:** Checkmark draws in with spring animation, card background fades to accent (200ms)
-- **Progress ring:** Animated stroke on load (600ms ease-out)
+- **Page load:** Stagger - Elemente erscheinen nacheinander mit leichtem Fade+Translate
+- **Hover effects:** Sanfter Schatten-Anstieg, Scale 1.02 für Cards
+- **Tap feedback:** Scale 0.98 beim Drücken, dann zurück
+- **Progress-Ring:** Animiert beim Laden und bei Änderungen (CSS transition)
+- **Checkbox:** Check-Animation mit Scale und Color-Transition
 
 ---
 
@@ -381,48 +366,30 @@ The MOST important metric that users see first.
 The implementer MUST copy these values exactly into `src/index.css`:
 
 ```css
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
 :root {
   --background: hsl(45 30% 97%);
-  --foreground: hsl(200 15% 15%);
-
+  --foreground: hsl(150 10% 15%);
   --card: hsl(0 0% 100%);
-  --card-foreground: hsl(200 15% 15%);
-
+  --card-foreground: hsl(150 10% 15%);
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(200 15% 15%);
-
-  --primary: hsl(145 35% 42%);
+  --popover-foreground: hsl(150 10% 15%);
+  --primary: hsl(152 55% 40%);
   --primary-foreground: hsl(0 0% 100%);
-
   --secondary: hsl(45 20% 94%);
-  --secondary-foreground: hsl(200 15% 25%);
-
+  --secondary-foreground: hsl(150 10% 25%);
   --muted: hsl(45 20% 94%);
-  --muted-foreground: hsl(200 10% 45%);
-
-  --accent: hsl(145 40% 92%);
-  --accent-foreground: hsl(145 35% 25%);
-
-  --destructive: hsl(0 65% 50%);
-  --destructive-foreground: hsl(0 0% 100%);
-
+  --muted-foreground: hsl(150 5% 45%);
+  --accent: hsl(152 45% 92%);
+  --accent-foreground: hsl(152 55% 25%);
+  --destructive: hsl(0 65% 55%);
   --border: hsl(45 15% 88%);
   --input: hsl(45 15% 88%);
-  --ring: hsl(145 35% 42%);
-
-  --radius: 0.75rem;
-
-  --chart-1: hsl(145 35% 42%);
-  --chart-2: hsl(145 45% 55%);
-  --chart-3: hsl(45 60% 65%);
-  --chart-4: hsl(200 30% 50%);
-  --chart-5: hsl(320 40% 55%);
-}
-
-body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  --ring: hsl(152 55% 40%);
+  --chart-1: hsl(152 55% 40%);
+  --chart-2: hsl(152 45% 55%);
+  --chart-3: hsl(45 50% 55%);
+  --chart-4: hsl(200 50% 55%);
+  --chart-5: hsl(280 40% 55%);
 }
 ```
 
@@ -433,14 +400,12 @@ body {
 The implementer should verify:
 - [ ] Font loaded from URL above (Plus Jakarta Sans)
 - [ ] All CSS variables copied exactly
-- [ ] Mobile layout matches Section 4 (hero ring, habit list, weekly dots)
-- [ ] Desktop layout matches Section 5 (3-column with sidebar)
-- [ ] Hero element is prominent as described (large progress ring)
-- [ ] Colors create the mood described in Section 2 (warm, encouraging)
+- [ ] Mobile layout matches Section 4
+- [ ] Desktop layout matches Section 5
+- [ ] Hero element (Progress-Ring) is prominent as described
+- [ ] Colors create the warm, motivating mood described in Section 2
 - [ ] CRUD patterns are consistent across all apps (same dialog style, button placement)
 - [ ] Delete confirmations are in place for all delete operations
-- [ ] Habit completion toggle works inline (quick interaction)
-- [ ] FAB visible on mobile for quick entry
-- [ ] Loading states with skeleton placeholders
-- [ ] Empty states with encouraging messages
-- [ ] Toast feedback on all CRUD operations
+- [ ] Checkbox toggle creates/updates Tägliche Einträge automatically
+- [ ] FAB positioned correctly on mobile
+- [ ] Categories use correct lookup_data keys from app_metadata.json

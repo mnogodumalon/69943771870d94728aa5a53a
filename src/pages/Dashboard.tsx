@@ -1,21 +1,20 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { Gewohnheiten, TaeglicheEintraege, Tagesprotokoll } from '@/types/app';
+import type { TaeglicheEintraege, Tagesprotokoll, Gewohnheiten } from '@/types/app';
 import { LivingAppsService, extractRecordId, createRecordUrl } from '@/services/livingAppsService';
 import { APP_IDS } from '@/types/app';
-import { format, parseISO, startOfWeek, addDays, isToday, isSameDay } from 'date-fns';
+import { format, parseISO, startOfDay, subDays, isSameDay } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { toast } from 'sonner';
+import { toast, Toaster } from 'sonner';
 
 // UI Components
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -33,23 +32,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Toaster } from '@/components/ui/sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // Icons
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Settings,
-  Target,
-  Flame,
-  Calendar,
-  FileText,
-  CheckCircle2,
-  Circle,
-} from 'lucide-react';
+import { Plus, Pencil, Trash2, Flame, Check, FileText } from 'lucide-react';
 
-// Constants
+// Charts
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+
+// Category labels mapping
 const KATEGORIE_LABELS: Record<string, string> = {
   gesundheit_fitness: 'Gesundheit & Fitness',
   ernaehrung: 'Ernährung',
@@ -60,16 +57,6 @@ const KATEGORIE_LABELS: Record<string, string> = {
   sonstiges: 'Sonstiges',
 };
 
-const KATEGORIE_COLORS: Record<string, string> = {
-  gesundheit_fitness: 'bg-green-100 text-green-800',
-  ernaehrung: 'bg-orange-100 text-orange-800',
-  produktivitaet: 'bg-blue-100 text-blue-800',
-  persoenliche_entwicklung: 'bg-purple-100 text-purple-800',
-  soziales: 'bg-pink-100 text-pink-800',
-  finanzen: 'bg-yellow-100 text-yellow-800',
-  sonstiges: 'bg-gray-100 text-gray-800',
-};
-
 const HAEUFIGKEIT_LABELS: Record<string, string> = {
   taeglich: 'Täglich',
   mehrmals_woche: 'Mehrmals pro Woche',
@@ -77,35 +64,36 @@ const HAEUFIGKEIT_LABELS: Record<string, string> = {
   monatlich: 'Monatlich',
 };
 
-// Helper functions
+// Category colors for badges
+const KATEGORIE_COLORS: Record<string, string> = {
+  gesundheit_fitness: 'bg-emerald-100 text-emerald-700',
+  ernaehrung: 'bg-orange-100 text-orange-700',
+  produktivitaet: 'bg-blue-100 text-blue-700',
+  persoenliche_entwicklung: 'bg-purple-100 text-purple-700',
+  soziales: 'bg-pink-100 text-pink-700',
+  finanzen: 'bg-yellow-100 text-yellow-700',
+  sonstiges: 'bg-gray-100 text-gray-700',
+};
+
+// Helper to get today's date string in YYYY-MM-DD format
 function getTodayString(): string {
   return format(new Date(), 'yyyy-MM-dd');
 }
 
-function getWeekDays(): Date[] {
-  const start = startOfWeek(new Date(), { weekStartsOn: 1 });
-  return Array.from({ length: 7 }, (_, i) => addDays(start, i));
-}
-
 // Progress Ring Component
-function ProgressRing({
-  percentage,
-  size = 180,
-  strokeWidth = 10,
-  className = '',
-}: {
-  percentage: number;
-  size?: number;
-  strokeWidth?: number;
-  className?: string;
+function ProgressRing({ progress, size, strokeWidth, children }: {
+  progress: number;
+  size: number;
+  strokeWidth: number;
+  children?: React.ReactNode;
 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const offset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className={`relative ${className}`} style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="transform -rotate-90">
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90" width={size} height={size}>
         {/* Background circle */}
         <circle
           cx={size / 2}
@@ -124,68 +112,14 @@ function ProgressRing({
           stroke="hsl(var(--primary))"
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
+          strokeDashoffset={offset}
           strokeLinecap="round"
-          className="transition-all duration-600 ease-out"
+          className="transition-all duration-500 ease-out"
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-5xl font-bold">{Math.round(percentage)}%</span>
-        <span className="text-sm text-muted-foreground mt-1">Heute erledigt</span>
+      <div className="absolute inset-0 flex items-center justify-center">
+        {children}
       </div>
-    </div>
-  );
-}
-
-// Loading Skeleton
-function DashboardSkeleton() {
-  return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header skeleton */}
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-40" />
-          <Skeleton className="h-10 w-10 rounded-full" />
-        </div>
-
-        {/* Hero skeleton */}
-        <div className="flex flex-col items-center py-8">
-          <Skeleton className="h-44 w-44 rounded-full" />
-          <div className="flex gap-4 mt-6">
-            <Skeleton className="h-8 w-32" />
-            <Skeleton className="h-8 w-32" />
-          </div>
-        </div>
-
-        {/* Habits skeleton */}
-        <div className="space-y-3">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-xl" />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Empty State
-function EmptyState({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-        <Target className="h-8 w-8 text-muted-foreground" />
-      </div>
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-muted-foreground mb-4 max-w-sm">{description}</p>
-      {action}
     </div>
   );
 }
@@ -207,8 +141,8 @@ function GewohnheitDialog({
   const [formData, setFormData] = useState({
     gewohnheit_name: '',
     beschreibung: '',
-    kategorie: 'sonstiges' as Gewohnheiten['fields']['kategorie'],
-    ziel_haeufigkeit: 'taeglich' as Gewohnheiten['fields']['ziel_haeufigkeit'],
+    kategorie: 'sonstiges' as NonNullable<Gewohnheiten['fields']['kategorie']>,
+    ziel_haeufigkeit: 'taeglich' as NonNullable<Gewohnheiten['fields']['ziel_haeufigkeit']>,
     startdatum: getTodayString(),
     zielwert: '',
     messbar: false,
@@ -231,13 +165,13 @@ function GewohnheitDialog({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!formData.gewohnheit_name.trim()) {
-      toast.error('Bitte gib einen Namen für die Gewohnheit ein.');
+      toast.error('Bitte gib einen Namen ein');
       return;
     }
-
     setSubmitting(true);
+
     try {
-      const payload = {
+      const apiData = {
         gewohnheit_name: formData.gewohnheit_name,
         beschreibung: formData.beschreibung || undefined,
         kategorie: formData.kategorie,
@@ -247,11 +181,11 @@ function GewohnheitDialog({
         messbar: formData.messbar,
       };
 
-      if (isEditing) {
-        await LivingAppsService.updateGewohnheitenEntry(gewohnheit!.record_id, payload);
+      if (isEditing && gewohnheit) {
+        await LivingAppsService.updateGewohnheitenEntry(gewohnheit.record_id, apiData);
         toast.success('Gewohnheit aktualisiert');
       } else {
-        await LivingAppsService.createGewohnheitenEntry(payload);
+        await LivingAppsService.createGewohnheitenEntry(apiData);
         toast.success('Gewohnheit erstellt');
       }
       onOpenChange(false);
@@ -271,12 +205,12 @@ function GewohnheitDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="gewohnheit_name">Name der Gewohnheit *</Label>
+            <Label htmlFor="name">Name der Gewohnheit *</Label>
             <Input
-              id="gewohnheit_name"
+              id="name"
               value={formData.gewohnheit_name}
               onChange={(e) => setFormData((prev) => ({ ...prev, gewohnheit_name: e.target.value }))}
-              placeholder="z.B. 30 Minuten lesen"
+              placeholder="z.B. Meditation"
               required
             />
           </div>
@@ -287,24 +221,24 @@ function GewohnheitDialog({
               id="beschreibung"
               value={formData.beschreibung}
               onChange={(e) => setFormData((prev) => ({ ...prev, beschreibung: e.target.value }))}
-              placeholder="Warum ist diese Gewohnheit wichtig für dich?"
+              placeholder="Was genau möchtest du erreichen?"
               rows={2}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="kategorie">Kategorie</Label>
+              <Label>Kategorie *</Label>
               <Select
-                value={formData.kategorie || 'sonstiges'}
-                onValueChange={(v) =>
+                value={formData.kategorie}
+                onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    kategorie: v as Gewohnheiten['fields']['kategorie'],
+                    kategorie: value as NonNullable<Gewohnheiten['fields']['kategorie']>,
                   }))
                 }
               >
-                <SelectTrigger id="kategorie" className="w-full">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -318,17 +252,17 @@ function GewohnheitDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="ziel_haeufigkeit">Häufigkeit</Label>
+              <Label>Häufigkeit *</Label>
               <Select
-                value={formData.ziel_haeufigkeit || 'taeglich'}
-                onValueChange={(v) =>
+                value={formData.ziel_haeufigkeit}
+                onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    ziel_haeufigkeit: v as Gewohnheiten['fields']['ziel_haeufigkeit'],
+                    ziel_haeufigkeit: value as NonNullable<Gewohnheiten['fields']['ziel_haeufigkeit']>,
                   }))
                 }
               >
-                <SelectTrigger id="ziel_haeufigkeit" className="w-full">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -358,7 +292,7 @@ function GewohnheitDialog({
               id="zielwert"
               value={formData.zielwert}
               onChange={(e) => setFormData((prev) => ({ ...prev, zielwert: e.target.value }))}
-              placeholder="z.B. 30 Minuten, 8 Gläser"
+              placeholder="z.B. 8 Gläser Wasser"
             />
           </div>
 
@@ -370,8 +304,8 @@ function GewohnheitDialog({
                 setFormData((prev) => ({ ...prev, messbar: checked === true }))
               }
             />
-            <Label htmlFor="messbar" className="text-sm font-normal cursor-pointer">
-              Messbare Gewohnheit (mit Zahlen/Mengen tracken)
+            <Label htmlFor="messbar" className="font-normal">
+              Messbare Gewohnheit (mit Zahlen/Mengen)
             </Label>
           </div>
 
@@ -396,14 +330,12 @@ function EintragDialog({
   eintrag,
   gewohnheiten,
   onSuccess,
-  preselectedGewohnheit,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   eintrag?: TaeglicheEintraege | null;
   gewohnheiten: Gewohnheiten[];
   onSuccess: () => void;
-  preselectedGewohnheit?: string;
 }) {
   const isEditing = !!eintrag;
   const [submitting, setSubmitting] = useState(false);
@@ -424,28 +356,27 @@ function EintragDialog({
     if (open) {
       const gewohnheitId = eintrag?.fields.gewohnheit
         ? extractRecordId(eintrag.fields.gewohnheit)
-        : preselectedGewohnheit || '';
-
+        : '';
       setFormData({
-        gewohnheit: gewohnheitId || '',
+        gewohnheit: gewohnheitId ?? '',
         datum: eintrag?.fields.datum ?? getTodayString(),
         erledigt: eintrag?.fields.erledigt ?? true,
         menge: eintrag?.fields.menge?.toString() ?? '',
         notizen: eintrag?.fields.notizen ?? '',
       });
     }
-  }, [open, eintrag, preselectedGewohnheit]);
+  }, [open, eintrag]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!formData.gewohnheit) {
-      toast.error('Bitte wähle eine Gewohnheit aus.');
+      toast.error('Bitte wähle eine Gewohnheit aus');
       return;
     }
-
     setSubmitting(true);
+
     try {
-      const payload = {
+      const apiData = {
         gewohnheit: createRecordUrl(APP_IDS.GEWOHNHEITEN, formData.gewohnheit),
         datum: formData.datum,
         erledigt: formData.erledigt,
@@ -453,12 +384,12 @@ function EintragDialog({
         notizen: formData.notizen || undefined,
       };
 
-      if (isEditing) {
-        await LivingAppsService.updateTaeglicheEintraegeEntry(eintrag!.record_id, payload);
+      if (isEditing && eintrag) {
+        await LivingAppsService.updateTaeglicheEintraegeEntry(eintrag.record_id, apiData);
         toast.success('Eintrag aktualisiert');
       } else {
-        await LivingAppsService.createTaeglicheEintraegeEntry(payload);
-        toast.success('Eintrag hinzugefügt');
+        await LivingAppsService.createTaeglicheEintraegeEntry(apiData);
+        toast.success('Eintrag erstellt');
       }
       onOpenChange(false);
       onSuccess();
@@ -473,23 +404,23 @@ function EintragDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Eintrag bearbeiten' : 'Eintrag hinzufügen'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Eintrag bearbeiten' : 'Neuer Eintrag'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="gewohnheit">Gewohnheit *</Label>
+            <Label>Gewohnheit *</Label>
             <Select
-              value={formData.gewohnheit || 'select-habit'}
-              onValueChange={(v) =>
-                setFormData((prev) => ({ ...prev, gewohnheit: v === 'select-habit' ? '' : v }))
+              value={formData.gewohnheit || 'placeholder'}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, gewohnheit: value === 'placeholder' ? '' : value }))
               }
               disabled={isEditing}
             >
-              <SelectTrigger id="gewohnheit" className="w-full">
+              <SelectTrigger>
                 <SelectValue placeholder="Gewohnheit auswählen..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="select-habit" disabled>
+                <SelectItem value="placeholder" disabled>
                   Gewohnheit auswählen...
                 </SelectItem>
                 {gewohnheiten.map((g) => (
@@ -508,6 +439,7 @@ function EintragDialog({
               type="date"
               value={formData.datum}
               onChange={(e) => setFormData((prev) => ({ ...prev, datum: e.target.value }))}
+              disabled={isEditing}
             />
           </div>
 
@@ -519,23 +451,21 @@ function EintragDialog({
                 setFormData((prev) => ({ ...prev, erledigt: checked === true }))
               }
             />
-            <Label htmlFor="erledigt" className="text-sm font-normal cursor-pointer">
+            <Label htmlFor="erledigt" className="font-normal">
               Erledigt
             </Label>
           </div>
 
           {selectedGewohnheit?.fields.messbar && (
             <div className="space-y-2">
-              <Label htmlFor="menge">
-                Menge/Wert {selectedGewohnheit.fields.zielwert && `(Ziel: ${selectedGewohnheit.fields.zielwert})`}
-              </Label>
+              <Label htmlFor="menge">Menge/Wert</Label>
               <Input
                 id="menge"
                 type="number"
-                step="any"
+                step="0.1"
                 value={formData.menge}
                 onChange={(e) => setFormData((prev) => ({ ...prev, menge: e.target.value }))}
-                placeholder="z.B. 30"
+                placeholder="z.B. 8"
               />
             </div>
           )}
@@ -546,7 +476,7 @@ function EintragDialog({
               id="notizen"
               value={formData.notizen}
               onChange={(e) => setFormData((prev) => ({ ...prev, notizen: e.target.value }))}
-              placeholder="Optionale Notizen zum Eintrag..."
+              placeholder="Optionale Notizen..."
               rows={2}
             />
           </div>
@@ -556,7 +486,7 @@ function EintragDialog({
               Abbrechen
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? 'Speichert...' : isEditing ? 'Speichern' : 'Hinzufügen'}
+              {submitting ? 'Speichert...' : isEditing ? 'Speichern' : 'Erstellen'}
             </Button>
           </DialogFooter>
         </form>
@@ -565,29 +495,36 @@ function EintragDialog({
   );
 }
 
-// Tagesprotokoll Dialog
+// Tagesprotokoll Dialog (Create/Edit)
 function TagesprotokollDialog({
   open,
   onOpenChange,
   protokoll,
+  gewohnheiten,
   onSuccess,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   protokoll?: Tagesprotokoll | null;
+  gewohnheiten: Gewohnheiten[];
   onSuccess: () => void;
 }) {
   const isEditing = !!protokoll;
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     protokoll_datum: getTodayString(),
+    erledigte_gewohnheiten: '',
     tagesnotizen: '',
   });
 
   useEffect(() => {
     if (open) {
+      const gewohnheitId = protokoll?.fields.erledigte_gewohnheiten
+        ? extractRecordId(protokoll.fields.erledigte_gewohnheiten)
+        : '';
       setFormData({
         protokoll_datum: protokoll?.fields.protokoll_datum ?? getTodayString(),
+        erledigte_gewohnheiten: gewohnheitId ?? '',
         tagesnotizen: protokoll?.fields.tagesnotizen ?? '',
       });
     }
@@ -595,20 +532,23 @@ function TagesprotokollDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
     setSubmitting(true);
+
     try {
-      const payload = {
+      const apiData = {
         protokoll_datum: formData.protokoll_datum,
+        erledigte_gewohnheiten: formData.erledigte_gewohnheiten
+          ? createRecordUrl(APP_IDS.GEWOHNHEITEN, formData.erledigte_gewohnheiten)
+          : undefined,
         tagesnotizen: formData.tagesnotizen || undefined,
       };
 
-      if (isEditing) {
-        await LivingAppsService.updateTagesprotokollEntry(protokoll!.record_id, payload);
-        toast.success('Tagesnotiz aktualisiert');
+      if (isEditing && protokoll) {
+        await LivingAppsService.updateTagesprotokollEntry(protokoll.record_id, apiData);
+        toast.success('Tagesprotokoll aktualisiert');
       } else {
-        await LivingAppsService.createTagesprotokollEntry(payload);
-        toast.success('Tagesnotiz hinzugefügt');
+        await LivingAppsService.createTagesprotokollEntry(apiData);
+        toast.success('Tagesprotokoll erstellt');
       }
       onOpenChange(false);
       onSuccess();
@@ -623,7 +563,7 @@ function TagesprotokollDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Tagesnotiz bearbeiten' : 'Tagesnotiz hinzufügen'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Tagesnotiz bearbeiten' : 'Neue Tagesnotiz'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -637,12 +577,37 @@ function TagesprotokollDialog({
           </div>
 
           <div className="space-y-2">
+            <Label>Gewohnheit (optional)</Label>
+            <Select
+              value={formData.erledigte_gewohnheiten || 'none'}
+              onValueChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  erledigte_gewohnheiten: value === 'none' ? '' : value,
+                }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Keine Gewohnheit" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Keine Gewohnheit</SelectItem>
+                {gewohnheiten.map((g) => (
+                  <SelectItem key={g.record_id} value={g.record_id}>
+                    {g.fields.gewohnheit_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="tagesnotizen">Notizen zum Tag</Label>
             <Textarea
               id="tagesnotizen"
               value={formData.tagesnotizen}
               onChange={(e) => setFormData((prev) => ({ ...prev, tagesnotizen: e.target.value }))}
-              placeholder="Wie war dein Tag? Was hast du erreicht?"
+              placeholder="Wie war dein Tag?"
               rows={4}
             />
           </div>
@@ -652,7 +617,7 @@ function TagesprotokollDialog({
               Abbrechen
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? 'Speichert...' : isEditing ? 'Speichern' : 'Hinzufügen'}
+              {submitting ? 'Speichert...' : isEditing ? 'Speichern' : 'Erstellen'}
             </Button>
           </DialogFooter>
         </form>
@@ -683,7 +648,7 @@ function DeleteConfirmDialog({
       await onConfirm();
       onOpenChange(false);
     } catch (err) {
-      toast.error('Fehler beim Löschen');
+      toast.error(`Fehler beim Löschen: ${err instanceof Error ? err.message : 'Unbekannter Fehler'}`);
     } finally {
       setDeleting(false);
     }
@@ -701,7 +666,7 @@ function DeleteConfirmDialog({
           <AlertDialogAction
             onClick={handleDelete}
             disabled={deleting}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="bg-destructive text-white hover:bg-destructive/90"
           >
             {deleting ? 'Löscht...' : 'Löschen'}
           </AlertDialogAction>
@@ -711,273 +676,23 @@ function DeleteConfirmDialog({
   );
 }
 
-// Habit Card Component
-function HabitCard({
-  gewohnheit,
-  todayEntry,
-  onToggle,
-  onEdit,
-  onDelete,
-  onAddEntry,
-}: {
-  gewohnheit: Gewohnheiten;
-  todayEntry?: TaeglicheEintraege;
-  onToggle: (gewohnheitId: string, currentEntry?: TaeglicheEintraege) => void;
-  onEdit: (gewohnheit: Gewohnheiten) => void;
-  onDelete: (gewohnheit: Gewohnheiten) => void;
-  onAddEntry: (gewohnheitId: string) => void;
-}) {
-  const isCompleted = todayEntry?.fields.erledigt === true;
-  const kategorie = gewohnheit.fields.kategorie || 'sonstiges';
-
+// Loading Skeleton
+function LoadingSkeleton() {
   return (
-    <Card
-      className={`transition-all duration-200 hover:shadow-md ${
-        isCompleted ? 'bg-accent/50 border-accent' : ''
-      }`}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center gap-4">
-          {/* Completion Toggle */}
-          <button
-            onClick={() => onToggle(gewohnheit.record_id, todayEntry)}
-            className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-            aria-label={isCompleted ? 'Als nicht erledigt markieren' : 'Als erledigt markieren'}
-          >
-            {isCompleted ? (
-              <CheckCircle2 className="w-8 h-8 text-primary" />
-            ) : (
-              <Circle className="w-8 h-8 text-muted-foreground" />
-            )}
-          </button>
-
-          {/* Habit Info */}
-          <div className="flex-grow min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
-                className={`font-medium ${isCompleted ? 'text-muted-foreground line-through' : ''}`}
-              >
-                {gewohnheit.fields.gewohnheit_name}
-              </span>
-              <Badge variant="secondary" className={`text-xs ${KATEGORIE_COLORS[kategorie]}`}>
-                {KATEGORIE_LABELS[kategorie]}
-              </Badge>
-            </div>
-            {gewohnheit.fields.zielwert && (
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Ziel: {gewohnheit.fields.zielwert}
-              </p>
-            )}
-            {todayEntry?.fields.menge !== undefined && todayEntry.fields.menge !== null && (
-              <p className="text-sm text-primary mt-0.5">
-                Heute: {todayEntry.fields.menge} {gewohnheit.fields.zielwert}
-              </p>
-            )}
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            {gewohnheit.fields.messbar && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onAddEntry(gewohnheit.record_id)}
-                aria-label="Menge eintragen"
-                className="h-9 w-9"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onEdit(gewohnheit)}
-              aria-label="Bearbeiten"
-              className="h-9 w-9"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(gewohnheit)}
-              aria-label="Löschen"
-              className="h-9 w-9 text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-[1200px] mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-10 rounded-full" />
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// Weekly Overview Component
-function WeeklyOverview({
-  eintraege,
-  gewohnheitenCount,
-}: {
-  eintraege: TaeglicheEintraege[];
-  gewohnheitenCount: number;
-}) {
-  const weekDays = getWeekDays();
-
-  const dayData = weekDays.map((day) => {
-    const dayString = format(day, 'yyyy-MM-dd');
-    const dayEntries = eintraege.filter((e) => e.fields.datum === dayString && e.fields.erledigt);
-    const completedCount = dayEntries.length;
-    const percentage = gewohnheitenCount > 0 ? (completedCount / gewohnheitenCount) * 100 : 0;
-
-    return {
-      date: day,
-      dayAbbr: format(day, 'EEEEEE', { locale: de }),
-      completedCount,
-      percentage,
-      isToday: isToday(day),
-    };
-  });
-
-  return (
-    <div className="flex justify-between gap-1">
-      {dayData.map((day, index) => (
-        <div key={index} className="flex flex-col items-center gap-1.5">
-          <span className={`text-xs ${day.isToday ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
-            {day.dayAbbr}
-          </span>
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
-              day.percentage >= 80
-                ? 'bg-primary text-primary-foreground'
-                : day.percentage >= 50
-                ? 'bg-primary/50 text-primary-foreground'
-                : day.percentage > 0
-                ? 'bg-primary/20 text-primary'
-                : 'bg-muted text-muted-foreground'
-            } ${day.isToday ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-          >
-            {day.completedCount}
-          </div>
+        <div className="flex flex-col items-center mb-8">
+          <Skeleton className="h-44 w-44 rounded-full mb-4" />
+          <Skeleton className="h-6 w-32" />
         </div>
-      ))}
+        <Skeleton className="h-64 w-full rounded-lg mb-6" />
+        <Skeleton className="h-48 w-full rounded-lg" />
+      </div>
     </div>
-  );
-}
-
-// Gewohnheiten Management Section
-function GewohnheitenSection({
-  gewohnheiten,
-  onEdit,
-  onDelete,
-  onCreate,
-}: {
-  gewohnheiten: Gewohnheiten[];
-  onEdit: (g: Gewohnheiten) => void;
-  onDelete: (g: Gewohnheiten) => void;
-  onCreate: () => void;
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold">Alle Gewohnheiten</CardTitle>
-        <Button size="sm" onClick={onCreate}>
-          <Plus className="h-4 w-4 mr-1" /> Neu
-        </Button>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {gewohnheiten.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            Noch keine Gewohnheiten erstellt.
-          </p>
-        ) : (
-          gewohnheiten.map((g) => (
-            <div
-              key={g.record_id}
-              className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-            >
-              <div className="min-w-0">
-                <div className="font-medium truncate">{g.fields.gewohnheit_name}</div>
-                <div className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Badge variant="secondary" className={`text-xs ${KATEGORIE_COLORS[g.fields.kategorie || 'sonstiges']}`}>
-                    {KATEGORIE_LABELS[g.fields.kategorie || 'sonstiges']}
-                  </Badge>
-                  <span>{HAEUFIGKEIT_LABELS[g.fields.ziel_haeufigkeit || 'taeglich']}</span>
-                </div>
-              </div>
-              <div className="flex gap-1">
-                <Button variant="ghost" size="icon" onClick={() => onEdit(g)} className="h-8 w-8">
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDelete(g)}
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// Tagesprotokoll Section
-function TagesprotokollSection({
-  protokoll,
-  onEdit,
-  onDelete,
-  onCreate,
-}: {
-  protokoll?: Tagesprotokoll;
-  onEdit: (p: Tagesprotokoll) => void;
-  onDelete: (p: Tagesprotokoll) => void;
-  onCreate: () => void;
-}) {
-  if (!protokoll) {
-    return (
-      <Card className="border-dashed">
-        <CardContent className="p-4">
-          <button
-            onClick={onCreate}
-            className="w-full flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground transition-colors py-2"
-          >
-            <FileText className="h-4 w-4" />
-            <span className="text-sm">Tagesnotiz hinzufügen</span>
-          </button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <FileText className="h-4 w-4" />
-          Tagesnotiz
-        </CardTitle>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={() => onEdit(protokoll)} className="h-8 w-8">
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(protokoll)}
-            className="h-8 w-8 text-destructive hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm whitespace-pre-wrap">{protokoll.fields.tagesnotizen || 'Keine Notizen'}</p>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -990,92 +705,30 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Dialog state
-  const [showGewohnheitDialog, setShowGewohnheitDialog] = useState(false);
-  const [editGewohnheit, setEditGewohnheit] = useState<Gewohnheiten | null>(null);
-  const [deleteGewohnheit, setDeleteGewohnheit] = useState<Gewohnheiten | null>(null);
+  // Dialog states
+  const [gewohnheitDialog, setGewohnheitDialog] = useState<{
+    open: boolean;
+    gewohnheit: Gewohnheiten | null;
+  }>({ open: false, gewohnheit: null });
+  const [eintragDialog, setEintragDialog] = useState<{
+    open: boolean;
+    eintrag: TaeglicheEintraege | null;
+  }>({ open: false, eintrag: null });
+  const [protokollDialog, setProtokollDialog] = useState<{
+    open: boolean;
+    protokoll: Tagesprotokoll | null;
+  }>({ open: false, protokoll: null });
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => Promise<void>;
+  }>({ open: false, title: '', description: '', onConfirm: async () => {} });
 
-  const [showEintragDialog, setShowEintragDialog] = useState(false);
-  const [editEintrag, setEditEintrag] = useState<TaeglicheEintraege | null>(null);
-  const [deleteEintrag, setDeleteEintrag] = useState<TaeglicheEintraege | null>(null);
-  const [preselectedGewohnheit, setPreselectedGewohnheit] = useState<string>('');
-
-  const [showProtokollDialog, setShowProtokollDialog] = useState(false);
-  const [editProtokoll, setEditProtokoll] = useState<Tagesprotokoll | null>(null);
-  const [deleteProtokoll, setDeleteProtokoll] = useState<Tagesprotokoll | null>(null);
-
-  // View state
-  const [activeTab, setActiveTab] = useState<'heute' | 'gewohnheiten'>('heute');
-
-  // Computed values
-  const today = getTodayString();
-
-  const todayEntries = useMemo(() => {
-    return eintraege.filter((e) => e.fields.datum === today);
-  }, [eintraege, today]);
-
-  const todayEntriesMap = useMemo(() => {
-    const map = new Map<string, TaeglicheEintraege>();
-    todayEntries.forEach((entry) => {
-      const gewohnheitId = extractRecordId(entry.fields.gewohnheit);
-      if (gewohnheitId) {
-        map.set(gewohnheitId, entry);
-      }
-    });
-    return map;
-  }, [todayEntries]);
-
-  const dailyGewohnheiten = useMemo(() => {
-    return gewohnheiten.filter(
-      (g) => g.fields.ziel_haeufigkeit === 'taeglich' || !g.fields.ziel_haeufigkeit
-    );
-  }, [gewohnheiten]);
-
-  const todayCompletedCount = useMemo(() => {
-    return todayEntries.filter((e) => e.fields.erledigt).length;
-  }, [todayEntries]);
-
-  const todayPercentage = useMemo(() => {
-    if (dailyGewohnheiten.length === 0) return 0;
-    return (todayCompletedCount / dailyGewohnheiten.length) * 100;
-  }, [todayCompletedCount, dailyGewohnheiten.length]);
-
-  const currentStreak = useMemo(() => {
-    // Calculate consecutive days with all habits completed
-    let streak = 0;
-    const today = new Date();
-
-    for (let i = 0; i < 365; i++) {
-      const checkDate = format(addDays(today, -i), 'yyyy-MM-dd');
-      const dayEntries = eintraege.filter((e) => e.fields.datum === checkDate && e.fields.erledigt);
-
-      // If today and no entries yet, continue checking
-      if (i === 0 && dayEntries.length === 0) continue;
-
-      // Check if at least 80% of daily habits completed
-      const completionRate = dailyGewohnheiten.length > 0
-        ? dayEntries.length / dailyGewohnheiten.length
-        : 0;
-
-      if (completionRate >= 0.8) {
-        streak++;
-      } else if (i > 0) {
-        break;
-      }
-    }
-
-    return streak;
-  }, [eintraege, dailyGewohnheiten.length]);
-
-  const todayProtokoll = useMemo(() => {
-    return protokolle.find((p) => p.fields.protokoll_datum === today);
-  }, [protokolle, today]);
-
-  // Data fetching
-  async function loadData() {
+  // Fetch all data
+  async function fetchData() {
     try {
       setLoading(true);
-      setError(null);
       const [g, e, p] = await Promise.all([
         LivingAppsService.getGewohnheiten(),
         LivingAppsService.getTaeglicheEintraege(),
@@ -1084,98 +737,161 @@ export default function Dashboard() {
       setGewohnheiten(g);
       setEintraege(e);
       setProtokolle(p);
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Fehler beim Laden der Daten'));
+      setError(err instanceof Error ? err : new Error('Fehler beim Laden'));
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadData();
+    fetchData();
   }, []);
 
-  // Event handlers
-  async function handleToggleHabit(gewohnheitId: string, currentEntry?: TaeglicheEintraege) {
+  // Create a map for quick gewohnheit lookup
+  const gewohnheitMap = useMemo(() => {
+    const map = new Map<string, Gewohnheiten>();
+    gewohnheiten.forEach((g) => map.set(g.record_id, g));
+    return map;
+  }, [gewohnheiten]);
+
+  // Filter entries for today
+  const todayString = getTodayString();
+  const heuteEintraege = useMemo(() => {
+    return eintraege.filter((e) => e.fields.datum === todayString);
+  }, [eintraege, todayString]);
+
+  // Create a map of today's entries by gewohnheit ID
+  const heuteEintraegeMap = useMemo(() => {
+    const map = new Map<string, TaeglicheEintraege>();
+    heuteEintraege.forEach((e) => {
+      const gId = extractRecordId(e.fields.gewohnheit);
+      if (gId) map.set(gId, e);
+    });
+    return map;
+  }, [heuteEintraege]);
+
+  // Calculate today's progress
+  const todayProgress = useMemo(() => {
+    const total = gewohnheiten.filter((g) => g.fields.ziel_haeufigkeit === 'taeglich').length || gewohnheiten.length;
+    const completed = heuteEintraege.filter((e) => e.fields.erledigt).length;
+    return {
+      completed,
+      total: Math.max(total, completed),
+      percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
+    };
+  }, [gewohnheiten, heuteEintraege]);
+
+  // Calculate streak (consecutive days with at least one completed habit)
+  const streak = useMemo(() => {
+    let count = 0;
+    const today = startOfDay(new Date());
+
+    for (let i = 0; i < 365; i++) {
+      const day = subDays(today, i);
+      const dayString = format(day, 'yyyy-MM-dd');
+      const dayEntries = eintraege.filter(
+        (e) => e.fields.datum === dayString && e.fields.erledigt
+      );
+
+      if (dayEntries.length > 0) {
+        count++;
+      } else if (i > 0) {
+        // Allow today to be incomplete
+        break;
+      }
+    }
+
+    return count;
+  }, [eintraege]);
+
+  // Calculate weekly data for chart
+  const weeklyData = useMemo(() => {
+    const data: { day: string; count: number }[] = [];
+    const today = startOfDay(new Date());
+
+    for (let i = 6; i >= 0; i--) {
+      const day = subDays(today, i);
+      const dayString = format(day, 'yyyy-MM-dd');
+      const dayEntries = eintraege.filter(
+        (e) => e.fields.datum === dayString && e.fields.erledigt
+      );
+
+      data.push({
+        day: format(day, 'EEE', { locale: de }),
+        count: dayEntries.length,
+      });
+    }
+
+    return data;
+  }, [eintraege]);
+
+  // Today's protokoll
+  const todayProtokoll = useMemo(() => {
+    return protokolle.find((p) => p.fields.protokoll_datum === todayString);
+  }, [protokolle, todayString]);
+
+  // Toggle habit completion for today
+  async function toggleHabit(gewohnheit: Gewohnheiten) {
+    const existingEntry = heuteEintraegeMap.get(gewohnheit.record_id);
+
     try {
-      if (currentEntry) {
+      if (existingEntry) {
         // Toggle existing entry
-        await LivingAppsService.updateTaeglicheEintraegeEntry(currentEntry.record_id, {
-          erledigt: !currentEntry.fields.erledigt,
+        await LivingAppsService.updateTaeglicheEintraegeEntry(existingEntry.record_id, {
+          erledigt: !existingEntry.fields.erledigt,
         });
-        toast.success(currentEntry.fields.erledigt ? 'Als nicht erledigt markiert' : 'Erledigt!');
+        toast.success(
+          existingEntry.fields.erledigt
+            ? 'Als nicht erledigt markiert'
+            : 'Als erledigt markiert'
+        );
       } else {
-        // Create new entry
+        // Create new entry as completed
         await LivingAppsService.createTaeglicheEintraegeEntry({
-          gewohnheit: createRecordUrl(APP_IDS.GEWOHNHEITEN, gewohnheitId),
-          datum: today,
+          gewohnheit: createRecordUrl(APP_IDS.GEWOHNHEITEN, gewohnheit.record_id),
+          datum: todayString,
           erledigt: true,
         });
-        toast.success('Erledigt!');
+        toast.success('Als erledigt markiert');
       }
-      loadData();
+      fetchData();
     } catch (err) {
-      toast.error('Fehler beim Aktualisieren');
+      toast.error(`Fehler: ${err instanceof Error ? err.message : 'Unbekannter Fehler'}`);
     }
   }
 
-  function handleOpenGewohnheitDialog(gewohnheit?: Gewohnheiten) {
-    setEditGewohnheit(gewohnheit || null);
-    setShowGewohnheitDialog(true);
-  }
-
-  function handleOpenEintragDialog(preselected?: string, eintrag?: TaeglicheEintraege) {
-    setEditEintrag(eintrag || null);
-    setPreselectedGewohnheit(preselected || '');
-    setShowEintragDialog(true);
-  }
-
-  function handleOpenProtokollDialog(protokoll?: Tagesprotokoll) {
-    setEditProtokoll(protokoll || null);
-    setShowProtokollDialog(true);
-  }
-
-  async function handleDeleteGewohnheit() {
-    if (!deleteGewohnheit) return;
-    await LivingAppsService.deleteGewohnheitenEntry(deleteGewohnheit.record_id);
+  // Delete handlers
+  async function deleteGewohnheit(g: Gewohnheiten) {
+    await LivingAppsService.deleteGewohnheitenEntry(g.record_id);
     toast.success('Gewohnheit gelöscht');
-    setDeleteGewohnheit(null);
-    loadData();
+    fetchData();
   }
 
-  async function handleDeleteEintrag() {
-    if (!deleteEintrag) return;
-    await LivingAppsService.deleteTaeglicheEintraegeEntry(deleteEintrag.record_id);
+  async function deleteEintrag(e: TaeglicheEintraege) {
+    await LivingAppsService.deleteTaeglicheEintraegeEntry(e.record_id);
     toast.success('Eintrag gelöscht');
-    setDeleteEintrag(null);
-    loadData();
+    fetchData();
   }
 
-  async function handleDeleteProtokoll() {
-    if (!deleteProtokoll) return;
-    await LivingAppsService.deleteTagesprotokollEntry(deleteProtokoll.record_id);
-    toast.success('Tagesnotiz gelöscht');
-    setDeleteProtokoll(null);
-    loadData();
+  async function deleteProtokoll(p: Tagesprotokoll) {
+    await LivingAppsService.deleteTagesprotokollEntry(p.record_id);
+    toast.success('Tagesprotokoll gelöscht');
+    fetchData();
   }
 
-  // Loading state
   if (loading) {
-    return <DashboardSkeleton />;
+    return <LoadingSkeleton />;
   }
 
-  // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-background p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
-          <CardContent className="p-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-              <Target className="h-8 w-8 text-destructive" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Fehler beim Laden</h3>
-            <p className="text-muted-foreground mb-4">{error.message}</p>
-            <Button onClick={loadData}>Erneut versuchen</Button>
+          <CardContent className="pt-6 text-center">
+            <p className="text-destructive mb-4">Fehler beim Laden: {error.message}</p>
+            <Button onClick={fetchData}>Erneut versuchen</Button>
           </CardContent>
         </Card>
       </div>
@@ -1187,265 +903,409 @@ export default function Dashboard() {
       <Toaster position="top-center" richColors />
 
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Gewohnheiten</h1>
-          <Button variant="ghost" size="icon">
-            <Settings className="h-5 w-5" />
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
+        <div className="max-w-[1200px] mx-auto px-4 h-14 flex items-center justify-between">
+          <h1 className="text-xl font-semibold">Gewohnheitstracker</h1>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setGewohnheitDialog({ open: true, gewohnheit: null })}
+            aria-label="Neue Gewohnheit"
+          >
+            <Plus className="h-5 w-5" />
           </Button>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-6">
-        {/* Mobile Layout */}
-        <div className="lg:hidden space-y-6">
-          {/* Hero Section */}
-          <section className="flex flex-col items-center py-6">
-            <ProgressRing percentage={todayPercentage} size={180} strokeWidth={10} />
-            <div className="flex gap-4 mt-6">
-              <Badge variant="secondary" className="px-3 py-1.5 text-sm">
-                <Target className="h-4 w-4 mr-1.5" />
-                {todayCompletedCount} von {dailyGewohnheiten.length}
-              </Badge>
-              <Badge variant="secondary" className="px-3 py-1.5 text-sm">
-                <Flame className="h-4 w-4 mr-1.5" />
-                {currentStreak} Tage Streak
-              </Badge>
-            </div>
-          </section>
-
-          {/* Tab Navigation */}
-          <div className="flex border-b">
-            <button
-              onClick={() => setActiveTab('heute')}
-              className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'heute'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Heute
-            </button>
-            <button
-              onClick={() => setActiveTab('gewohnheiten')}
-              className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'gewohnheiten'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Alle Gewohnheiten
-            </button>
-          </div>
-
-          {activeTab === 'heute' ? (
-            <>
-              {/* Today's Date */}
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span className="text-sm">
-                  {format(new Date(), "EEEE, d. MMMM", { locale: de })}
-                </span>
-              </div>
-
-              {/* Today's Habits */}
-              {dailyGewohnheiten.length === 0 ? (
-                <EmptyState
-                  title="Keine Gewohnheiten"
-                  description="Erstelle deine erste Gewohnheit, um mit dem Tracken zu beginnen."
-                  action={
-                    <Button onClick={() => handleOpenGewohnheitDialog()}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Gewohnheit erstellen
-                    </Button>
-                  }
-                />
-              ) : (
-                <div className="space-y-3">
-                  {dailyGewohnheiten.map((g) => (
-                    <HabitCard
-                      key={g.record_id}
-                      gewohnheit={g}
-                      todayEntry={todayEntriesMap.get(g.record_id)}
-                      onToggle={handleToggleHabit}
-                      onEdit={handleOpenGewohnheitDialog}
-                      onDelete={setDeleteGewohnheit}
-                      onAddEntry={(id) => handleOpenEintragDialog(id)}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {/* Weekly Overview */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-semibold">Diese Woche</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <WeeklyOverview eintraege={eintraege} gewohnheitenCount={dailyGewohnheiten.length} />
-                </CardContent>
-              </Card>
-
-              {/* Tagesprotokoll */}
-              <TagesprotokollSection
-                protokoll={todayProtokoll}
-                onEdit={handleOpenProtokollDialog}
-                onDelete={setDeleteProtokoll}
-                onCreate={() => handleOpenProtokollDialog()}
-              />
-            </>
-          ) : (
-            <GewohnheitenSection
-              gewohnheiten={gewohnheiten}
-              onEdit={handleOpenGewohnheitDialog}
-              onDelete={setDeleteGewohnheit}
-              onCreate={() => handleOpenGewohnheitDialog()}
-            />
-          )}
-        </div>
-
-        {/* Desktop Layout */}
-        <div className="hidden lg:grid lg:grid-cols-12 lg:gap-6">
-          {/* Left Sidebar - Categories */}
-          <aside className="col-span-3 space-y-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Kategorien</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                {Object.entries(KATEGORIE_LABELS).map(([key, label]) => {
-                  const count = gewohnheiten.filter((g) => g.fields.kategorie === key).length;
-                  if (count === 0) return null;
-                  return (
-                    <div
-                      key={key}
-                      className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
+      {/* Main Content */}
+      <main className="max-w-[1200px] mx-auto p-4 md:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6">
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* Hero Section */}
+            <Card className="overflow-hidden">
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row items-center gap-6">
+                  {/* Progress Ring */}
+                  <div className="flex flex-col items-center">
+                    <ProgressRing
+                      progress={todayProgress.percentage}
+                      size={180}
+                      strokeWidth={10}
                     >
-                      <span className="text-sm">{label}</span>
-                      <Badge variant="secondary" className="text-xs">
-                        {count}
+                      <div className="text-center">
+                        <div className="text-5xl font-extrabold">{todayProgress.completed}</div>
+                        <div className="text-sm text-muted-foreground">
+                          von {todayProgress.total} heute
+                        </div>
+                      </div>
+                    </ProgressRing>
+
+                    {/* Streak Badge */}
+                    {streak > 0 && (
+                      <Badge variant="secondary" className="mt-4 gap-1">
+                        <Flame className="h-4 w-4 text-orange-500" />
+                        {streak} {streak === 1 ? 'Tag' : 'Tage'} in Folge
                       </Badge>
-                    </div>
-                  );
-                })}
+                    )}
+                  </div>
+
+                  {/* Weekly Chart (Desktop only) */}
+                  <div className="hidden md:block flex-1 h-[160px]">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Letzte 7 Tage</p>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={weeklyData}>
+                        <XAxis
+                          dataKey="day"
+                          tick={{ fontSize: 12 }}
+                          stroke="hsl(var(--muted-foreground))"
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis hide />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                          formatter={(value: number) => [`${value} erledigt`, '']}
+                        />
+                        <Bar
+                          dataKey="count"
+                          fill="hsl(var(--primary))"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-
-            <Button className="w-full" onClick={() => handleOpenGewohnheitDialog()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Neue Gewohnheit
-            </Button>
-          </aside>
-
-          {/* Main Content */}
-          <div className="col-span-6 space-y-6">
-            {/* Hero Section */}
-            <section className="flex flex-col items-center py-8 bg-card rounded-xl border">
-              <ProgressRing percentage={todayPercentage} size={200} strokeWidth={12} />
-              <div className="flex gap-4 mt-6">
-                <Badge variant="secondary" className="px-4 py-2 text-sm">
-                  <Target className="h-4 w-4 mr-2" />
-                  {todayCompletedCount} von {dailyGewohnheiten.length} Gewohnheiten
-                </Badge>
-                <Badge variant="secondary" className="px-4 py-2 text-sm">
-                  <Flame className="h-4 w-4 mr-2" />
-                  {currentStreak} Tage Streak
-                </Badge>
-              </div>
-            </section>
-
-            {/* Today's Date */}
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span className="font-medium">
-                {format(new Date(), "EEEE, d. MMMM yyyy", { locale: de })}
-              </span>
-            </div>
 
             {/* Today's Habits */}
-            {dailyGewohnheiten.length === 0 ? (
-              <EmptyState
-                title="Keine Gewohnheiten"
-                description="Erstelle deine erste Gewohnheit, um mit dem Tracken zu beginnen."
-                action={
-                  <Button onClick={() => handleOpenGewohnheitDialog()}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Gewohnheit erstellen
-                  </Button>
-                }
-              />
-            ) : (
-              <div className="space-y-3">
-                {dailyGewohnheiten.map((g) => (
-                  <HabitCard
-                    key={g.record_id}
-                    gewohnheit={g}
-                    todayEntry={todayEntriesMap.get(g.record_id)}
-                    onToggle={handleToggleHabit}
-                    onEdit={handleOpenGewohnheitDialog}
-                    onDelete={setDeleteGewohnheit}
-                    onAddEntry={(id) => handleOpenEintragDialog(id)}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Tagesprotokoll */}
-            <TagesprotokollSection
-              protokoll={todayProtokoll}
-              onEdit={handleOpenProtokollDialog}
-              onDelete={setDeleteProtokoll}
-              onCreate={() => handleOpenProtokollDialog()}
-            />
-          </div>
-
-          {/* Right Sidebar - Stats */}
-          <aside className="col-span-3 space-y-4">
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Diese Woche</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle className="text-lg">Heute</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {format(new Date(), 'EEEE, d. MMMM', { locale: de })}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setEintragDialog({ open: true, eintrag: null })}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Eintrag
+                </Button>
               </CardHeader>
               <CardContent>
-                <WeeklyOverview eintraege={eintraege} gewohnheitenCount={dailyGewohnheiten.length} />
+                {gewohnheiten.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>Noch keine Gewohnheiten angelegt.</p>
+                    <Button
+                      variant="link"
+                      onClick={() => setGewohnheitDialog({ open: true, gewohnheit: null })}
+                    >
+                      Erste Gewohnheit erstellen
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {gewohnheiten
+                      .sort((a, b) => {
+                        const aCompleted = heuteEintraegeMap.get(a.record_id)?.fields.erledigt;
+                        const bCompleted = heuteEintraegeMap.get(b.record_id)?.fields.erledigt;
+                        if (aCompleted === bCompleted) return 0;
+                        return aCompleted ? 1 : -1;
+                      })
+                      .map((g) => {
+                        const entry = heuteEintraegeMap.get(g.record_id);
+                        const isCompleted = entry?.fields.erledigt ?? false;
+
+                        return (
+                          <div
+                            key={g.record_id}
+                            className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                              isCompleted
+                                ? 'bg-accent/50 border-accent'
+                                : 'hover:bg-muted/50'
+                            }`}
+                          >
+                            <button
+                              onClick={() => toggleHabit(g)}
+                              className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                isCompleted
+                                  ? 'bg-primary border-primary text-primary-foreground'
+                                  : 'border-muted-foreground hover:border-primary'
+                              }`}
+                              aria-label={isCompleted ? 'Als nicht erledigt markieren' : 'Als erledigt markieren'}
+                            >
+                              {isCompleted && <Check className="h-4 w-4" />}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <p
+                                className={`font-medium truncate ${
+                                  isCompleted ? 'line-through text-muted-foreground' : ''
+                                }`}
+                              >
+                                {g.fields.gewohnheit_name}
+                              </p>
+                              {g.fields.messbar && entry?.fields.menge != null && (
+                                <p className="text-sm text-muted-foreground">
+                                  Menge: {entry.fields.menge}
+                                </p>
+                              )}
+                            </div>
+                            <Badge
+                              variant="secondary"
+                              className={`text-xs ${KATEGORIE_COLORS[g.fields.kategorie ?? 'sonstiges']}`}
+                            >
+                              {KATEGORIE_LABELS[g.fields.kategorie ?? 'sonstiges']}
+                            </Badge>
+                            {entry && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 opacity-50 hover:opacity-100"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEintragDialog({ open: true, eintrag: entry });
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+
+                {/* Today's Note */}
+                <div className="mt-4 pt-4 border-t">
+                  {todayProtokoll ? (
+                    <div className="flex items-start gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground">
+                          {todayProtokoll.fields.tagesnotizen || 'Keine Notizen'}
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() =>
+                            setProtokollDialog({ open: true, protokoll: todayProtokoll })
+                          }
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-destructive"
+                          onClick={() =>
+                            setDeleteDialog({
+                              open: true,
+                              title: 'Tagesnotiz löschen?',
+                              description: `Möchtest du die Tagesnotiz vom ${format(
+                                parseISO(todayProtokoll.fields.protokoll_datum ?? todayString),
+                                'd. MMMM yyyy',
+                                { locale: de }
+                              )} wirklich löschen?`,
+                              onConfirm: () => deleteProtokoll(todayProtokoll),
+                            })
+                          }
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground"
+                      onClick={() => setProtokollDialog({ open: true, protokoll: null })}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Tagesnotiz hinzufügen
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
+          </div>
 
+          {/* Right Column - Habits Management */}
+          <div className="space-y-6">
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Statistiken</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg">Meine Gewohnheiten</CardTitle>
+                  <Badge variant="secondary">{gewohnheiten.length}</Badge>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setGewohnheitDialog({ open: true, gewohnheit: null })}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Neu
+                </Button>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Aktive Gewohnheiten</span>
-                  <span className="font-semibold">{gewohnheiten.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Längster Streak</span>
-                  <span className="font-semibold">{currentStreak} Tage</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Einträge gesamt</span>
-                  <span className="font-semibold">{eintraege.length}</span>
-                </div>
+              <CardContent>
+                {gewohnheiten.length === 0 ? (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <p>Keine Gewohnheiten vorhanden.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {gewohnheiten
+                      .sort((a, b) =>
+                        (a.fields.gewohnheit_name ?? '').localeCompare(b.fields.gewohnheit_name ?? '')
+                      )
+                      .map((g) => (
+                        <div
+                          key={g.record_id}
+                          className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{g.fields.gewohnheit_name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge
+                                variant="outline"
+                                className={`text-xs ${KATEGORIE_COLORS[g.fields.kategorie ?? 'sonstiges']}`}
+                              >
+                                {KATEGORIE_LABELS[g.fields.kategorie ?? 'sonstiges']}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {HAEUFIGKEIT_LABELS[g.fields.ziel_haeufigkeit ?? 'taeglich']}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              onClick={() => setGewohnheitDialog({ open: true, gewohnheit: g })}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() =>
+                                setDeleteDialog({
+                                  open: true,
+                                  title: 'Gewohnheit löschen?',
+                                  description: `Möchtest du die Gewohnheit "${g.fields.gewohnheit_name}" wirklich löschen? Alle zugehörigen Einträge bleiben erhalten.`,
+                                  onConfirm: () => deleteGewohnheit(g),
+                                })
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            <GewohnheitenSection
-              gewohnheiten={gewohnheiten}
-              onEdit={handleOpenGewohnheitDialog}
-              onDelete={setDeleteGewohnheit}
-              onCreate={() => handleOpenGewohnheitDialog()}
-            />
-          </aside>
+            {/* Recent Protokolle */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-lg">Tagesnotizen</CardTitle>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setProtokollDialog({ open: true, protokoll: null })}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Neu
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {protokolle.length === 0 ? (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <p>Keine Tagesnotizen vorhanden.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {protokolle
+                      .sort((a, b) =>
+                        (b.fields.protokoll_datum ?? '').localeCompare(a.fields.protokoll_datum ?? '')
+                      )
+                      .slice(0, 5)
+                      .map((p) => (
+                        <div
+                          key={p.record_id}
+                          className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">
+                              {p.fields.protokoll_datum
+                                ? format(parseISO(p.fields.protokoll_datum), 'd. MMMM yyyy', {
+                                    locale: de,
+                                  })
+                                : 'Kein Datum'}
+                            </p>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {p.fields.tagesnotizen || 'Keine Notizen'}
+                            </p>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7"
+                              onClick={() => setProtokollDialog({ open: true, protokoll: p })}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-destructive"
+                              onClick={() =>
+                                setDeleteDialog({
+                                  open: true,
+                                  title: 'Tagesnotiz löschen?',
+                                  description: `Möchtest du die Tagesnotiz vom ${
+                                    p.fields.protokoll_datum
+                                      ? format(parseISO(p.fields.protokoll_datum), 'd. MMMM yyyy', {
+                                          locale: de,
+                                        })
+                                      : 'unbekanntem Datum'
+                                  } wirklich löschen?`,
+                                  onConfirm: () => deleteProtokoll(p),
+                                })
+                              }
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
 
       {/* FAB for Mobile */}
-      <div className="lg:hidden fixed bottom-6 right-6">
+      <div className="fixed bottom-6 right-6 lg:hidden">
         <Button
           size="lg"
           className="h-14 w-14 rounded-full shadow-lg"
-          onClick={() => handleOpenEintragDialog()}
+          onClick={() => setEintragDialog({ open: true, eintrag: null })}
         >
           <Plus className="h-6 w-6" />
         </Button>
@@ -1453,50 +1313,36 @@ export default function Dashboard() {
 
       {/* Dialogs */}
       <GewohnheitDialog
-        open={showGewohnheitDialog}
-        onOpenChange={setShowGewohnheitDialog}
-        gewohnheit={editGewohnheit}
-        onSuccess={loadData}
+        open={gewohnheitDialog.open}
+        onOpenChange={(open) => setGewohnheitDialog({ open, gewohnheit: null })}
+        gewohnheit={gewohnheitDialog.gewohnheit}
+        onSuccess={fetchData}
       />
 
       <EintragDialog
-        open={showEintragDialog}
-        onOpenChange={setShowEintragDialog}
-        eintrag={editEintrag}
+        open={eintragDialog.open}
+        onOpenChange={(open) => setEintragDialog({ open, eintrag: null })}
+        eintrag={eintragDialog.eintrag}
         gewohnheiten={gewohnheiten}
-        onSuccess={loadData}
-        preselectedGewohnheit={preselectedGewohnheit}
+        onSuccess={fetchData}
       />
 
       <TagesprotokollDialog
-        open={showProtokollDialog}
-        onOpenChange={setShowProtokollDialog}
-        protokoll={editProtokoll}
-        onSuccess={loadData}
+        open={protokollDialog.open}
+        onOpenChange={(open) => setProtokollDialog({ open, protokoll: null })}
+        protokoll={protokollDialog.protokoll}
+        gewohnheiten={gewohnheiten}
+        onSuccess={fetchData}
       />
 
       <DeleteConfirmDialog
-        open={!!deleteGewohnheit}
-        onOpenChange={(open) => !open && setDeleteGewohnheit(null)}
-        title="Gewohnheit löschen?"
-        description={`Möchtest du die Gewohnheit "${deleteGewohnheit?.fields.gewohnheit_name}" wirklich löschen? Alle zugehörigen Einträge bleiben erhalten.`}
-        onConfirm={handleDeleteGewohnheit}
-      />
-
-      <DeleteConfirmDialog
-        open={!!deleteEintrag}
-        onOpenChange={(open) => !open && setDeleteEintrag(null)}
-        title="Eintrag löschen?"
-        description={`Eintrag vom ${deleteEintrag?.fields.datum} löschen?`}
-        onConfirm={handleDeleteEintrag}
-      />
-
-      <DeleteConfirmDialog
-        open={!!deleteProtokoll}
-        onOpenChange={(open) => !open && setDeleteProtokoll(null)}
-        title="Tagesnotiz löschen?"
-        description={`Tagesnotiz vom ${deleteProtokoll?.fields.protokoll_datum} löschen?`}
-        onConfirm={handleDeleteProtokoll}
+        open={deleteDialog.open}
+        onOpenChange={(open) =>
+          setDeleteDialog({ open, title: '', description: '', onConfirm: async () => {} })
+        }
+        title={deleteDialog.title}
+        description={deleteDialog.description}
+        onConfirm={deleteDialog.onConfirm}
       />
     </div>
   );
