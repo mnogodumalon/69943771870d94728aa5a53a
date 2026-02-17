@@ -1,0 +1,274 @@
+{
+  "appgroup_id": "69943771870d94728aa5a53a",
+  "appgroup_name": "Gewohnheitstracker",
+  "apps": {
+    "taegliche_eintraege": {
+      "app_id": "69943738538c8e3d69467891",
+      "name": "T\u00e4gliche Eintr\u00e4ge",
+      "controls": {
+        "gewohnheit": {
+          "identifier": "gewohnheit",
+          "label": "Gewohnheit",
+          "type": "applookup",
+          "subtype": "select",
+          "fulltype": "applookup/select",
+          "description": "A reference to a LivingApp record from the target lookup app 'Gewohnheiten' with the id `6994372ab69af285cd5d3c3a` (or `null`/`None`).\n\nThe field value will be a valid record URL in the form `https://ci04.ci.xist4c.de/rest/apps/6994372ab69af285cd5d3c3a/<record-id>` or `null`/`None`.",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true,
+          "lookup_app": "https://ci04.ci.xist4c.de/rest/apps/6994372ab69af285cd5d3c3a"
+        },
+        "datum": {
+          "identifier": "datum",
+          "label": "Datum",
+          "type": "date",
+          "subtype": "date",
+          "fulltype": "date/date",
+          "description": "A calendar date consisting of year, month and day. (Or `null`/`None`)\n\nThe field value will be a string in the format `<YYYY>-<MM>-<DD>` or `null`/`None`.\n\nFor example: `1642-12-25`.",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "erledigt": {
+          "identifier": "erledigt",
+          "label": "Erledigt",
+          "type": "bool",
+          "subtype": null,
+          "fulltype": "bool",
+          "description": "A boolean value, i.e. `true` or `false` (or `null`/`None`).",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "menge": {
+          "identifier": "menge",
+          "label": "Menge/Wert",
+          "type": "number",
+          "subtype": null,
+          "fulltype": "number",
+          "description": "A decimal number value (or `null`/`None`).",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true,
+          "precision": null
+        },
+        "notizen": {
+          "identifier": "notizen",
+          "label": "Notizen",
+          "type": "string",
+          "subtype": "textarea",
+          "fulltype": "string/textarea",
+          "description": "A string value that can contain multiple lines of text (or `null`/`None`).",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        }
+      }
+    },
+    "tagesprotokoll": {
+      "app_id": "699437395ee05143dff4f81b",
+      "name": "Tagesprotokoll",
+      "controls": {
+        "protokoll_datum": {
+          "identifier": "protokoll_datum",
+          "label": "Datum",
+          "type": "date",
+          "subtype": "date",
+          "fulltype": "date/date",
+          "description": "A calendar date consisting of year, month and day. (Or `null`/`None`)\n\nThe field value will be a string in the format `<YYYY>-<MM>-<DD>` or `null`/`None`.\n\nFor example: `1642-12-25`.",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "erledigte_gewohnheiten": {
+          "identifier": "erledigte_gewohnheiten",
+          "label": "Erledigte Gewohnheiten",
+          "type": "applookup",
+          "subtype": "select",
+          "fulltype": "applookup/select",
+          "description": "A reference to a LivingApp record from the target lookup app 'Gewohnheiten' with the id `6994372ab69af285cd5d3c3a` (or `null`/`None`).\n\nThe field value will be a valid record URL in the form `https://ci04.ci.xist4c.de/rest/apps/6994372ab69af285cd5d3c3a/<record-id>` or `null`/`None`.",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true,
+          "lookup_app": "https://ci04.ci.xist4c.de/rest/apps/6994372ab69af285cd5d3c3a"
+        },
+        "tagesnotizen": {
+          "identifier": "tagesnotizen",
+          "label": "Notizen zum Tag",
+          "type": "string",
+          "subtype": "textarea",
+          "fulltype": "string/textarea",
+          "description": "A string value that can contain multiple lines of text (or `null`/`None`).",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        }
+      }
+    },
+    "gewohnheiten": {
+      "app_id": "6994372ab69af285cd5d3c3a",
+      "name": "Gewohnheiten",
+      "controls": {
+        "gewohnheit_name": {
+          "identifier": "gewohnheit_name",
+          "label": "Name der Gewohnheit",
+          "type": "string",
+          "subtype": "text",
+          "fulltype": "string/text",
+          "description": "A string value not longer than 4000 characters (or `null`/`None`).",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "beschreibung": {
+          "identifier": "beschreibung",
+          "label": "Beschreibung",
+          "type": "string",
+          "subtype": "textarea",
+          "fulltype": "string/textarea",
+          "description": "A string value that can contain multiple lines of text (or `null`/`None`).",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": true,
+          "in_text": true,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "kategorie": {
+          "identifier": "kategorie",
+          "label": "Kategorie",
+          "type": "lookup",
+          "subtype": "select",
+          "fulltype": "lookup/select",
+          "description": "One selected option of multiple available options (or `null`/`None`).\n\nThe available options are defined in the `lookup_data` attribute of this control.\n\nThe field value will be the key in this `lookup_data` attribute or `null`/`None`.",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true,
+          "lookup_data": {
+            "gesundheit_fitness": "Gesundheit & Fitness",
+            "ernaehrung": "Ern\u00e4hrung",
+            "produktivitaet": "Produktivit\u00e4t",
+            "persoenliche_entwicklung": "Pers\u00f6nliche Entwicklung",
+            "soziales": "Soziales",
+            "finanzen": "Finanzen",
+            "sonstiges": "Sonstiges"
+          }
+        },
+        "ziel_haeufigkeit": {
+          "identifier": "ziel_haeufigkeit",
+          "label": "Zielh\u00e4ufigkeit",
+          "type": "lookup",
+          "subtype": "select",
+          "fulltype": "lookup/select",
+          "description": "One selected option of multiple available options (or `null`/`None`).\n\nThe available options are defined in the `lookup_data` attribute of this control.\n\nThe field value will be the key in this `lookup_data` attribute or `null`/`None`.",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true,
+          "lookup_data": {
+            "taeglich": "T\u00e4glich",
+            "mehrmals_woche": "Mehrmals pro Woche",
+            "woechentlich": "W\u00f6chentlich",
+            "monatlich": "Monatlich"
+          }
+        },
+        "startdatum": {
+          "identifier": "startdatum",
+          "label": "Startdatum",
+          "type": "date",
+          "subtype": "date",
+          "fulltype": "date/date",
+          "description": "A calendar date consisting of year, month and day. (Or `null`/`None`)\n\nThe field value will be a string in the format `<YYYY>-<MM>-<DD>` or `null`/`None`.\n\nFor example: `1642-12-25`.",
+          "required": null,
+          "in_list": true,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "zielwert": {
+          "identifier": "zielwert",
+          "label": "Ziel/Zielwert",
+          "type": "string",
+          "subtype": "text",
+          "fulltype": "string/text",
+          "description": "A string value not longer than 4000 characters (or `null`/`None`).",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        },
+        "messbar": {
+          "identifier": "messbar",
+          "label": "Messbare Gewohnheit (mit Zahlen/Mengen)",
+          "type": "bool",
+          "subtype": null,
+          "fulltype": "bool",
+          "description": "A boolean value, i.e. `true` or `false` (or `null`/`None`).",
+          "required": null,
+          "in_list": false,
+          "in_mobile_list": false,
+          "in_text": false,
+          "in_structured_search": false,
+          "in_fulltext_search": false,
+          "in_expert_search": true
+        }
+      }
+    }
+  },
+  "metadata": {
+    "apps_list": [
+      "T\u00e4gliche Eintr\u00e4ge",
+      "Tagesprotokoll",
+      "Gewohnheiten"
+    ]
+  }
+}
