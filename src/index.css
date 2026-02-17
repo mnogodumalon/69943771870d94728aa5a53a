@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -42,38 +43,39 @@
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.75rem;
   --background: hsl(45 30% 97%);
-  --foreground: hsl(150 25% 15%);
+  --foreground: hsl(200 15% 15%);
   --card: hsl(0 0% 100%);
-  --card-foreground: hsl(150 25% 15%);
+  --card-foreground: hsl(200 15% 15%);
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(150 25% 15%);
-  --primary: hsl(152 45% 35%);
+  --popover-foreground: hsl(200 15% 15%);
+  --primary: hsl(145 35% 42%);
   --primary-foreground: hsl(0 0% 100%);
   --secondary: hsl(45 20% 94%);
-  --secondary-foreground: hsl(150 25% 25%);
+  --secondary-foreground: hsl(200 15% 25%);
   --muted: hsl(45 20% 94%);
-  --muted-foreground: hsl(150 10% 45%);
-  --accent: hsl(158 40% 90%);
-  --accent-foreground: hsl(150 25% 15%);
+  --muted-foreground: hsl(200 10% 45%);
+  --accent: hsl(145 40% 92%);
+  --accent-foreground: hsl(145 35% 25%);
   --destructive: hsl(0 65% 50%);
+  --destructive-foreground: hsl(0 0% 100%);
   --border: hsl(45 15% 88%);
   --input: hsl(45 15% 88%);
-  --ring: hsl(152 45% 35%);
-  --chart-1: hsl(152 45% 35%);
-  --chart-2: hsl(152 60% 40%);
-  --chart-3: hsl(158 40% 50%);
-  --chart-4: hsl(45 40% 60%);
-  --chart-5: hsl(150 25% 30%);
-  --sidebar: hsl(45 30% 97%);
-  --sidebar-foreground: hsl(150 25% 15%);
-  --sidebar-primary: hsl(152 45% 35%);
+  --ring: hsl(145 35% 42%);
+  --chart-1: hsl(145 35% 42%);
+  --chart-2: hsl(145 45% 55%);
+  --chart-3: hsl(45 60% 65%);
+  --chart-4: hsl(200 30% 50%);
+  --chart-5: hsl(320 40% 55%);
+  --sidebar: hsl(45 25% 96%);
+  --sidebar-foreground: hsl(200 15% 15%);
+  --sidebar-primary: hsl(145 35% 42%);
   --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(158 40% 90%);
-  --sidebar-accent-foreground: hsl(150 25% 15%);
+  --sidebar-accent: hsl(145 40% 92%);
+  --sidebar-accent-foreground: hsl(145 35% 25%);
   --sidebar-border: hsl(45 15% 88%);
-  --sidebar-ring: hsl(152 45% 35%);
+  --sidebar-ring: hsl(145 35% 42%);
 }
 
 .dark {
